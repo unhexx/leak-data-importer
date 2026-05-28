@@ -13,6 +13,7 @@ found in data/raw while never losing information.
 from __future__ import annotations
 
 import re
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
@@ -215,13 +216,29 @@ class TxtReportImporter(BaseImporter):
         rec.parsing_strategy = "rich_detailed"
         return bool(rec.full_name or rec.phones)
 
+    def _greedy_extract_fields(self, block: str) -> dict[str, list[str]]:
+        """Capture EVERY 'Key: value' pair in the block. Nothing is lost."""
+        fields: dict[str, list[str]] = defaultdict(list)
+        for line in block.splitlines():
+            if ':' not in line:
+                continue
+            key, _, val = line.partition(':')
+            key = key.strip()
+            val = val.strip()
+            if key and val and len(key) < 80:
+                fields[key].append(val)
+        return dict(fields)
+
     def _parse_block(self, block: str, source_file: str, block_id: str) -> Optional[PersonRecord]:
         if len(block.strip()) < self.min_block_len:
             return None
 
         rec = PersonRecord(source_file=source_file, source_block_id=block_id)
 
-        # Try strategies (order matters for these particular files)
+        # Capture absolutely everything first (lossless)
+        rec.raw_data = self._greedy_extract_fields(block)
+
+        # Then do best-effort structured extraction
         ok = self._parse_compact_bulleted(block, rec) or self._parse_rich(block, rec)
 
         # Dedup + cleanup
@@ -316,6 +333,9 @@ class TxtReportImporter(BaseImporter):
                 birth_date=rec.birth_date,
                 source_ref=rec.source_block_id,
             )
+            # Attach all raw captured fields so nothing is lost
+            if rec.raw_data:
+                p.properties.setdefault("raw_fields", {}).update(rec.raw_data)
             entity_by_key[key] = p
             graph.entities.append(p)
             return p

@@ -37,6 +37,11 @@ dev = [
     "mypy>=1.10",
     "pre-commit>=3.5",
 ]
+graph = [
+    "neo4j>=5.20",        # Neo4j graph database export
+    "pyvis>=0.3",         # For visual graph rendering
+    "streamlit>=1.35",    # For the import control UI
+]
 
 [project.scripts]
 leak-data-importer = "leak_data_importer.cli:main"
