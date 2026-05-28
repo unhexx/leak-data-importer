@@ -15,7 +15,12 @@
 #>
 
 [CmdletBinding()]
-param()
+param(
+    [string]$TaskDescription,
+    [string]$TaskSpecFile = "TASK_SPECIFICATION.md",
+    [string]$OutputFile,
+    [switch]$GeneratePromptOnly
+)
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
@@ -87,7 +92,77 @@ $env:BLACKBOX_AGENT_MODE = "1"
 
 Write-Host "✓ Environment variables set for current session and user." -ForegroundColor Green
 
-# 5. Final instructions
+# 5. Generate task-specific starter prompt (if requested)
+function Generate-AgentStarterPrompt {
+    param(
+        [string]$Task,
+        [string]$SpecFile,
+        [string]$ProjectPath = $ProjectRoot
+    )
+
+    $prompt = @"
+We are starting an autonomous agentic development loop using the template in `agentic_loop_template/`.
+
+**Current Task:**
+$Task
+
+**Instructions for you (the agent):**
+
+1. First, ensure the local Python environment is ready by running:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
+   ```
+
+2. Activate the virtual environment:
+   ```powershell
+   . .\.venv\Scripts\Activate.ps1
+   ```
+
+3. Read the following files in this exact order:
+   - `docs/agentic_loop/README.md`
+   - `docs/agentic_loop/SYSTEM_PROMPT.md`
+   - `docs/agentic_loop/Agent-Init.md`
+   - `$SpecFile` (this is the single source of truth for the task)
+
+4. Begin working as **ORCHESTRATOR** according to the structure in `SYSTEM_PROMPT.md`.
+
+**Strict Rules:**
+- All git commit messages must be written in natural Russian, as a real human mid/senior developer who has been working on this project for a long time.
+- Never mention AI, LLM, agent, MiniMax, Grok, Claude, or any other model name in commit messages.
+- Always use the local `.venv` for Python commands.
+- Work iteratively with small, well-tested changes.
+- Follow the full Orchestrator → Coder → Tester → Debugger → Reviewer cycle.
+
+Start now by assessing the current state of the repository and the task specification.
+"@
+
+    return $prompt
+}
+
+# Main prompt generation logic
+if ($GeneratePromptOnly -or $TaskDescription) {
+    Write-Host "`n[5/5] Generating task-specific starter prompt..." -ForegroundColor Cyan
+
+    $generatedPrompt = Generate-AgentStarterPrompt -Task $TaskDescription -SpecFile $TaskSpecFile
+
+    if ($OutputFile) {
+        $fullOutputPath = if ([System.IO.Path]::IsPathRooted($OutputFile)) { $OutputFile } else { Join-Path $ProjectRoot $OutputFile }
+        Set-Content -Path $fullOutputPath -Value $generatedPrompt -Encoding UTF8
+        Write-Host "✓ Prompt saved to: $fullOutputPath" -ForegroundColor Green
+    }
+
+    Write-Host "`n=== Generated Starter Prompt for Blackbox ===" -ForegroundColor Yellow
+    Write-Host $generatedPrompt -ForegroundColor Gray
+    Write-Host "=============================================" -ForegroundColor Yellow
+
+    if (-not $GeneratePromptOnly) {
+        Write-Host "`nEnvironment is also prepared. You can now give the prompt above to the agent." -ForegroundColor Green
+    }
+
+    exit 0
+}
+
+# Normal (non-prompt-only) final instructions
 Write-Host "`n[5/5] Initialization complete." -ForegroundColor Cyan
 
 Write-Host ""
@@ -121,4 +196,7 @@ Write-Host "You can now start giving tasks to the Blackbox agent." -ForegroundCo
 Write-Host ""
 Write-Host "Tip: If the agent gets confused about the environment later, just tell it:" -ForegroundColor DarkGray
 Write-Host "     'Run: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1'" -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "To generate a task-specific starter prompt automatically, run:" -ForegroundColor DarkGray
+Write-Host "     .\agentic_loop_template\Agent-Init.ps1 -TaskDescription 'Your task here' -TaskSpecFile 'TASK_SPECIFICATION.md' -OutputFile 'start_prompt.txt'" -ForegroundColor DarkGray
 Write-Host ""
