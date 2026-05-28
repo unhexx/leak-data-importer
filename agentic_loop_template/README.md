@@ -38,6 +38,11 @@ agentic_loop_template/
 
 See `Agent-Init.md` for detailed instructions tailored to Blackbox + MiniMax2.5 in VSCode.
 
+You can also generate a ready-to-paste, task-specific starter prompt for the agent:
+```powershell
+.\agentic_loop_template\Agent-Init.ps1 -TaskDescription "Your task description" -OutputFile "start_prompt.txt"
+```
+
 ## Environment Management (Critical)
 
 The agent **must** maintain a local Python environment:

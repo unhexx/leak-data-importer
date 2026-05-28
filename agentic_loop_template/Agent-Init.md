@@ -123,6 +123,33 @@ These tell the tools to behave safely when output is being captured by an agent.
 
 ---
 
+## Generating a Task-Specific Starter Prompt
+
+Instead of giving a generic message, you can make the script generate a ready-to-paste prompt tailored to your exact task:
+
+```powershell
+.\agentic_loop_template\Agent-Init.ps1 `
+    -TaskDescription "Реализовать улучшенный парсер dossier-отчётов с поддержкой fuzzy linking и экспортом в Neo4j" `
+    -TaskSpecFile "TASK_SPECIFICATION.md" `
+    -OutputFile "agent_start_prompt.txt"
+```
+
+This will:
+- Prepare the environment as usual
+- Generate a high-quality, context-rich prompt containing your task description
+- Save it to `agent_start_prompt.txt` (ready to copy into Blackbox)
+
+You can then open `agent_start_prompt.txt` and send its content as the first message to the agent.
+
+### Example of Generated Prompt Content
+
+The generated prompt will include:
+- Your specific task
+- Instructions to read the template files
+- Command to initialize the environment
+- Reminder about Russian developer-style commits
+- Instruction to start as ORCHESTRATOR
+
 ## Quick One-Liner for the Agent (when it gets confused)
 
 If the agent loses the environment, tell it:
