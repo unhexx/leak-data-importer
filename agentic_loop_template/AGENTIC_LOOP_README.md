@@ -1,191 +1,163 @@
-# Шаблон: Саморазвивающийся Agentic Loop
+# Agentic Loop Template for MiniMax 2.5 + Blackbox (VSCode)
 
-> Шаблон окружения для замкнутого саморазвивающегося агентного цикла на базе MiniMax-M2.5.  
-> Версия: 1.0 | Платформа: Windows (PowerShell) | Модель: MiniMax-M2.5
-
----
-
-## Что это
-
-Полный шаблон для запуска многоролевого агентного цикла, в котором одна языковая модель (MiniMax-M2.5) последовательно исполняет роли **Orchestrator → Coder → Tester → Debugger → Reviewer**, работая над задачей до полного соответствия спецификации.
-
-Цикл:
-- **Замкнутый** — Reviewer возвращает управление Orchestrator'у если задача не выполнена
-- **Саморазвивающийся** — уроки каждого цикла кристаллизуются в постоянные правила
-- **Детерминированный** — JSON handoff между ролями обеспечивает точную передачу состояния
+> Self-improving multi-role agentic development loop optimized for **Blackbox AI** in VSCode using the **MiniMax 2.5** model.
+> Version: 2.1 | Platform: Windows (PowerShell) | Primary Target: Blackbox + MiniMax 2.5
 
 ---
 
-## Структура шаблона
+## What This Is
+
+A complete, production-oriented template for running a closed-loop, self-improving agentic development cycle where **MiniMax 2.5** (via Blackbox) sequentially takes on the roles of:
+
+**Orchestrator → Coder → Tester → Debugger → Reviewer**
+
+The agent works iteratively until the task fully meets the specification.
+
+### Key Characteristics
+
+- **Closed loop**: The Reviewer can send control back to the Orchestrator if the task is not complete.
+- **Self-improving**: Lessons from each cycle are crystallized into permanent rules in `PROJECT_CONTEXT.md` and `SPRINTPLAN.md`.
+- **Deterministic**: Strict JSON handoff between roles for reliable state transfer.
+- **Blackbox & non-interactive friendly**: Designed to work reliably when Blackbox spawns new PowerShell processes.
+
+---
+
+## Directory Structure
 
 ```
 agentic_loop_template/
-├── SYSTEM_PROMPT.md              ← Главный системный промпт (заполнить {{ ... }})
-├── AGENT_ROLES.md                ← Инструкции для каждой из 5 ролей
-├── HANDOFF_SCHEMA.md             ← Полная схема JSON передачи управления
-├── TOOLS_REGISTRY.md             ← Реестр доступных инструментов
-├── PROJECT_CONTEXT_TEMPLATE.md  ← Шаблон PROJECT_CONTEXT.md
-├── SPRINTPLAN_TEMPLATE.md        ← Шаблон SPRINTPLAN.md
-├── setup_env_template.ps1        ← Скрипт подготовки окружения (Windows PowerShell)
-└── AGENTIC_LOOP_README.md        ← Этот файл
+├── README.md                          # This file (Blackbox + MiniMax 2.5 focused)
+├── SYSTEM_PROMPT.md                   # Main system prompt (fill {{placeholders}})
+├── AGENT_ROLES.md                     # Detailed instructions for each role
+├── HANDOFF_SCHEMA.md                  # JSON handoff contract between roles
+├── TOOLS_REGISTRY.md                  # Available tools for the local runner
+├── PROJECT_CONTEXT_TEMPLATE.md        # Template for PROJECT_CONTEXT.md
+├── SPRINTPLAN_TEMPLATE.md             # Template for SPRINTPLAN.md
+├── setup_env.ps1                      # Robust Python venv + requirements bootstrap
+├── Agent-Init.ps1                     # One-command setup for Blackbox + VSCode
+├── Agent-Init.md                      # Detailed Blackbox + MiniMax 2.5 launch guide
+└── Profile-Bootstrap.ps1              # PowerShell profile helper for non-interactive sessions
 ```
 
 ---
 
-## Быстрый старт: адаптация под новый проект
+## Quick Start (Blackbox + MiniMax 2.5 in VSCode)
 
-### Шаг 1: Скопировать шаблон в репозиторий проекта
-
-```powershell
-Copy-Item -Recurse agentic_loop_template\* your_project_root\
-```
-
-### Шаг 2: Заполнить переменные в SYSTEM_PROMPT.md
-
-Найдите и замените все `{{ ... }}`:
-
-| Переменная | Описание | Пример |
-|-----------|----------|--------|
-| `{{ Краткое описание цели }}` | Цель проекта | Реализовать парсер OSINT-отчётов |
-| `{{ TASK_SPECIFICATION.md }}` | Имя файла спецификации | `PARSER_SPEC.md` |
-| `{{ Python 3.11 / ... }}` | Технологический стек | `Python 3.11, FastAPI, Redis` |
-| `{{ /path/to/repo }}` | Путь к репозиторию | `C:\Projects\my-parser` |
-| `{{ название-фичи }}` | Название ветки | `json-export-module` |
-| `{{ Имя Фамилия }}` | Git user.name | `Алексей Петров` |
-| `{{ email@domain.ru }}` | Git user.email | `aleksey@company.ru` |
-
-### Шаг 3: Скопировать шаблоны контекстных файлов
+### 1. One-time environment preparation
 
 ```powershell
-Copy-Item PROJECT_CONTEXT_TEMPLATE.md PROJECT_CONTEXT.md
-Copy-Item SPRINTPLAN_TEMPLATE.md SPRINTPLAN.md
-Copy-Item setup_env_template.ps1 scripts\setup_env.ps1
+cd X:\Your\Project\Root
+.\agentic_loop_template\Agent-Init.ps1
 ```
 
-Заполнить `PROJECT_CONTEXT.md` и `SPRINTPLAN.md` по аналогии — заменить `{{ ... }}`.
+This script will:
+- Create and activate the local Python virtual environment (`.venv`)
+- Install dependencies from `pyproject.toml`
+- Install `posh-bash-chaining` (for `&&`, `||`, `|&` support)
+- Set environment variables optimized for Blackbox agents
+- Optionally generate a ready-to-paste starter prompt
 
-### Шаг 4: Подготовить спецификацию задачи
+### 2. Recommended Blackbox Configuration
 
-Создать `TASK_SPECIFICATION.md` с:
-- Полным описанием задачи
-- Acceptance criteria для каждого модуля
-- Edge-кейсами с ожидаемым поведением
-- Примерами входных/выходных данных
+**Model**: MiniMax 2.5 (or the highest quality available model)
 
-### Шаг 5: Инициализировать агентный цикл
+**Custom Instructions** (add to Blackbox settings):
 
-Использовать `SYSTEM_PROMPT.md` как системный промпт для MiniMax-M2.5.  
-Первое сообщение пользователя: пустое или `"Начать цикл 0"`.
+```
+You are participating in a structured Agentic Development Loop using the template in agentic_loop_template/.
+
+Core Rules:
+- Follow the cycle: Orchestrator → Coder → Tester → Debugger → Reviewer.
+- Always ensure the local Python environment is ready before major work.
+- All git commit messages must be written in natural Russian, as a real human mid/senior developer.
+- Never mention AI, LLM, agent, MiniMax, Grok, Claude, or any model name in commit messages.
+- Work iteratively with small, well-tested changes.
+- Use the local .venv for all Python commands.
+- Read agentic_loop_template/SYSTEM_PROMPT.md and follow its structure and handoff format.
+```
+
+### 3. Starting the Loop
+
+After running `Agent-Init.ps1`, copy the generated prompt (or the example in `Agent-Init.md`) and paste it as your first message to Blackbox.
+
+The agent will:
+- Read the system prompt
+- Begin as **Orchestrator**
+- Create/update `PROJECT_CONTEXT.md` and `SPRINTPLAN.md`
+- Start the first planning cycle
 
 ---
 
-## Как работает цикл
+## How the Cycle Works
 
 ```
+External Loop (Sprint)
 ┌─────────────────────────────────────────────────────────────┐
-│                    ВНЕШНИЙ ЦИКЛ (sprint)                    │
-│                                                             │
-│  [Orchestrator] ──→ [Coder] ──→ [Tester] ──→ [Debugger]   │
-│       ↑                                           │         │
-│       │              [Reviewer] ←─────────────────┘         │
-│       │                  │                                   │
-│       └── NOT DONE ──────┘     DONE → завершение            │
+│  [Orchestrator] → [Coder] → [Tester] → [Debugger] → [Reviewer]
+│       ↑                                                    │
+│       └──────────── NOT DONE ──────────────────────────────┘
+│                     DONE → Task Complete
 └─────────────────────────────────────────────────────────────┘
-
-Внутри каждой роли:
-  PLAN → ACT → REFLECT → ACT → REFLECT → ...
-  (не более 3 tool calls без REFLECT)
 ```
 
-### Передача управления
-
-Каждое сообщение агента заканчивается JSON-объектом (схема в `HANDOFF_SCHEMA.md`).  
-Локальный агент (ваш runner) парсит JSON и:
-1. Извлекает `handoff_to`
-2. Подставляет инструкции нужной роли из `AGENT_ROLES.md`
-3. Передаёт управление следующей роли
+Inside each role the agent follows:
+**PLAN → ACT (max 3 tool calls) → REFLECT → repeat**
 
 ---
 
-## Требования к локальному runner'у
+## Important Rules for Blackbox + MiniMax 2.5
 
-Шаблон рассчитан на следующий интерфейс локального агента:
+- **Commits must be in Russian** and sound like they were written by a real developer.
+- **Never mention** AI, agent, LLM, MiniMax, etc. in commit messages.
+- The agent should call `setup_env.ps1` (or `Agent-Init.ps1`) at the start of major cycles to maintain the local Python environment.
+- For non-interactive sessions (common with Blackbox), the system automatically disables the PSReadLine handler to avoid breaking output capture.
 
+---
+
+## Recommended Model Settings (MiniMax 2.5)
+
+| Role          | Temperature | Top-P | Max Tokens |
+|---------------|-------------|-------|------------|
+| Orchestrator  | 0.0         | 0.9   | 4096       |
+| Coder         | 0.2         | 0.95  | 8192       |
+| Tester        | 0.0         | 0.9   | 4096       |
+| Debugger      | 0.2         | 0.95  | 4096       |
+| Reviewer      | 0.0         | 0.9   | 4096       |
+
+---
+
+## PowerShell Command to Launch the Cycle
+
+The simplest way to start:
+
+```powershell
+cd X:\Path\To\Your\Project
+.\agentic_loop_template\Agent-Init.ps1 -OutputFile "blackbox_start_prompt.txt"
 ```
-MiniMax-M2.5 ←→ [Local Runner] ←→ Windows PowerShell
-                      ↑
-                 Парсит JSON tool calls
-                 Возвращает stdout/stderr
+
+Then open the generated file and send its content to Blackbox as the first message.
+
+For maximum automation you can combine it with opening the file:
+
+```powershell
+.\agentic_loop_template\Agent-Init.ps1 -OutputFile "blackbox_start_prompt.txt"; code "blackbox_start_prompt.txt"
 ```
 
-Runner должен поддерживать инструменты из `TOOLS_REGISTRY.md`:
-- `powershell` — выполнение команд
-- `read_file` / `write_file` / `append_file`
-- `list_dir`
-- `git_status` / `git_commit`
-- `run_tests`
-- `search_replace`
+---
+
+## Adapting for Other Projects
+
+1. Copy the `agentic_loop_template` folder into your project.
+2. Fill all `{{ ... }}` placeholders in `SYSTEM_PROMPT.md`.
+3. Create a `TASK_SPECIFICATION.md` with clear requirements.
+4. Run `Agent-Init.ps1` and follow the Blackbox instructions in `Agent-Init.md`.
 
 ---
 
-## Настройки модели (рекомендуемые)
+## Limitations
 
-| Роль | Temperature | Top-P | Max Tokens |
-|------|-------------|-------|------------|
-| Orchestrator | 0.0 | 0.9 | 4096 |
-| Coder | 0.2 | 0.95 | 8192 |
-| Tester | 0.0 | 0.9 | 4096 |
-| Debugger | 0.2 | 0.95 | 4096 |
-| Reviewer | 0.0 | 0.9 | 4096 |
+- Optimized for Windows + PowerShell + Blackbox + MiniMax 2.5.
+- The local runner must support the tools defined in `TOOLS_REGISTRY.md`.
+- Maximum recommended 3–4 full cycles before doing an architecture review.
 
----
-
-## Правила Git (обязательные)
-
-- Рабочая ветка: `feature-{{ название-фичи }}`
-- Commit-сообщения: на русском, от лица разработчика-человека
-- **Запрещено в commit-сообщениях:** AI, LLM, agent, MiniMax, нейросеть, агентный цикл
-- Коммит после каждого значимого изменения (модуль, тесты, исправление)
-
----
-
-## Файлы, которые редактирует агент
-
-| Файл | Кто обновляет | Частота |
-|------|--------------|---------|
-| `PROJECT_CONTEXT.md` | Orchestrator (статус) + Reviewer (лог) | Каждый цикл |
-| `SPRINTPLAN.md` | Orchestrator (создаёт/обновляет) + Reviewer (процессные улучшения) | Каждый цикл |
-| `src/*.py` | Coder + Debugger | Фазы 1–4 |
-| `tests/*.py` | Tester + Debugger | Фазы 3–4 |
-| `migrations/` | Coder | Фаза 1 |
-| `README.md`, `USAGE.md`, `pyproject.toml` | Reviewer | Финализация |
-
----
-
-## Расширение шаблона
-
-### Добавить новый инструмент
-1. Зарегистрировать в `TOOLS_REGISTRY.md` — описание, параметры, примеры
-2. Реализовать в локальном runner'е
-3. Обновить системный промпт (раздел "Доступные инструменты")
-
-### Добавить новую роль
-1. Добавить блок в `AGENT_ROLES.md`
-2. Обновить матрицу передачи управления в `HANDOFF_SCHEMA.md`
-3. Добавить допустимое значение в `handoff_to` в схеме
-4. Обновить описание ролей в `SYSTEM_PROMPT.md`
-
-### Адаптировать под Linux / macOS
-- Заменить `powershell` tool на `bash`
-- Поправить пути (разделитель `/`)
-- Заменить `.\venv\Scripts\Activate.ps1` на `. .venv/bin/activate`
-- Обновить `setup_env.ps1` → `setup_env.sh`
-
----
-
-## Ограничения шаблона
-
-- Рассчитан на MiniMax-M2.5; для других моделей может потребоваться адаптация инструкций по INTERLEAVED THINKING и tool call форматам
-- Предполагает Windows PowerShell на локальной машине
-- Не включает CI/CD интеграцию (расширяется через новые tool call типы)
-- Максимум 3–4 цикла запроектировано; при большем числе рекомендуется architecture review
+This template is specifically tuned for reliable autonomous development when using **Blackbox AI** with the **MiniMax 2.5** model in Visual Studio Code.
