@@ -488,8 +488,8 @@ class TxtReportImporter(BaseImporter):
         from leak_data_importer.graph.result import ImportGraphResult
         from leak_data_importer.graph import (
             make_person, make_phone, make_email, make_passport,
-            make_snils, make_esia_account,
-            has_phone, has_email, has_document, owns_account,
+            make_snils, make_esia_account, make_address, make_vehicle,
+            has_phone, has_email, has_document, owns_account, registered_at,
         )
 
         flat_records, stats = self.parse_with_stats()
