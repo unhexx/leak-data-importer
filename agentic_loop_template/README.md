@@ -28,20 +28,20 @@ agentic_loop_template/
 └── Agent-Init.md                 # Detailed guide for Blackbox / MiniMax2.5 in VSCode
 ```
 
-## Quick Start
+## Quick Start (Recommended for Blackbox + MiniMax 2.5)
 
 1. Copy the template into your project root.
-2. Fill all `{{ ... }}` placeholders in `SYSTEM_PROMPT.md`.
-3. Create `TASK_SPECIFICATION.md` (the single source of truth).
-4. **For Blackbox + VSCode users**: Run `.\agentic_loop_template\Agent-Init.ps1` (highly recommended).
-5. Run the environment bootstrap and start the loop using `SYSTEM_PROMPT.md`.
+2. Fill **all** `{{ ... }}` placeholders in `SYSTEM_PROMPT.md` (see the Pre-Flight Checklist inside it).
+3. Create your main specification file (e.g. `TASK_SPECIFICATION.md` or `TODO.md`).
+4. **For Blackbox + VSCode users** (strongly recommended):
+   ```powershell
+   .\agentic_loop_template\Agent-Init.ps1
+   ```
+   This prepares the Python environment and generates a ready-to-use starter prompt.
 
-See `Agent-Init.md` for detailed instructions tailored to Blackbox + MiniMax2.5 in VSCode.
+5. Start the loop by sending the content of `SYSTEM_PROMPT.md` (with placeholders filled) as the system prompt to MiniMax 2.5 via Blackbox.
 
-You can also generate a ready-to-paste, task-specific starter prompt for the agent:
-```powershell
-.\agentic_loop_template\Agent-Init.ps1 -TaskDescription "Your task description" -OutputFile "start_prompt.txt"
-```
+See `Agent-Init.md` for the detailed Blackbox + VSCode launch guide, including recommended Custom Instructions and the first message.
 
 ## Environment Management (Critical)
 
