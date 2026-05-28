@@ -26,10 +26,8 @@ classifiers = [
 ]
 
 dependencies = [
-    # Core dependencies will be added here as features are implemented
-    # "pandas>=2.0",
-    # "typer[all]>=0.9",
-    # "rich>=13",
+    "charset-normalizer>=3.3",   # Excellent encoding detection for messy Russian leak dumps
+    "pydantic>=2.7",
 ]
 
 [project.optional-dependencies]

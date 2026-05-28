@@ -65,8 +65,45 @@ def main() -> int:
         print("Mode   : DRY-RUN (no files will be written)")
 
     if args.command == "import":
-        print("\n[INFO] Import functionality is not yet implemented.")
-        print("       This is a skeleton CLI. Add your importer logic in cli.py or a dedicated module.")
+        from pathlib import Path
+        from leak_data_importer.importers import IMPORTER_REGISTRY
+
+        if not args.source:
+            print("[ERROR] --source is required for import command")
+            return 1
+
+        source = Path(args.source)
+        fmt = args.format.lower()
+
+        if fmt == "auto":
+            if source.suffix.lower() == ".txt" or source.name.startswith("report_"):
+                fmt = "txt_report"
+            else:
+                fmt = "txt_report"  # default for now
+
+        importer_cls = IMPORTER_REGISTRY.get(fmt)
+        if not importer_cls:
+            print(f"[ERROR] Unknown format: {fmt}. Available: {list(IMPORTER_REGISTRY.keys())}")
+            return 1
+
+        print(f"\n[INFO] Using importer: {importer_cls.name}")
+        print(f"[INFO] Source: {source}")
+
+        try:
+            importer = importer_cls(source)
+            records = list(importer.iter_records())
+            print(f"[SUCCESS] Parsed {len(records)} records")
+
+            if args.dry_run:
+                print("\n--- First 3 records (dry-run) ---")
+                for rec in records[:3]:
+                    print(f"  {rec.full_name} | phones={rec.phones} | emails={rec.emails}")
+            else:
+                # TODO: implement actual export (csv/json/parquet)
+                print("[INFO] Writing output is not implemented yet. Use --dry-run for now.")
+        except Exception as e:
+            print(f"[ERROR] {e}")
+            return 1
     else:
         print(f"\n[INFO] The '{args.command}' command is planned but not implemented yet.")
 
