@@ -1,7 +1,15 @@
 ﻿<#
 .SYNOPSIS
-    Initialization script for Blackbox + MiniMax2.5 in VSCode.
-    Prepares Python venv and can generate a ready-to-use agent starter prompt.
+    Robust initialization script for Blackbox + MiniMax2.5 agentic development in VSCode.
+
+.DESCRIPTION
+    Prepares a reliable local Python virtual environment and can generate
+    a ready-to-use starter prompt for Blackbox.
+
+    Key improvements:
+    - Automatically creates or repairs broken .venv
+    - Clear, step-by-step messages with status
+    - Auto-detects task from TODO.md or TASK_SPECIFICATION.md
 #>
 
 [CmdletBinding()]
@@ -31,6 +39,7 @@ function Get-AutoTaskDescription {
                 if ($raw.Length -gt $MaxLength) {
                     $raw = $raw.Substring(0, $MaxLength) + "`n... (truncated)"
                 }
+                Write-Host "  Auto-detected task from: $(Split-Path $file -Leaf)" -ForegroundColor Green
                 return $raw.Trim()
             } catch {}
         }
@@ -49,69 +58,150 @@ function Generate-AgentStarterPrompt {
         "",
         "**Instructions:**",
         "",
-        "1. Run this first:",
+        "1. First, ensure the local Python environment is ready by running:",
         "   powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1",
         "",
-        "2. Activate venv:",
+        "2. Activate the virtual environment:",
         "   . .\.venv\Scripts\Activate.ps1",
         "",
-        "3. Read in order:",
+        "3. Read in this order:",
         "   - docs/agentic_loop/README.md",
         "   - docs/agentic_loop/SYSTEM_PROMPT.md",
         "   - docs/agentic_loop/Agent-Init.md",
         "   - $SpecFile",
         "",
-        "4. Start as ORCHESTRATOR.",
+        "4. Start as ORCHESTRATOR according to the SYSTEM_PROMPT.",
         "",
-        "Rules: Use natural Russian developer-style commit messages only. No AI/agent mentions in commits.",
-        "Always work inside the local .venv."
+        "Rules:",
+        "- Write all git commits in natural Russian, as a real human developer.",
+        "- Never mention AI, LLM, agent, MiniMax, Grok, Claude, etc. in commit messages.",
+        "- Always work inside the local .venv."
     )
 
     return ($lines -join "`r`n")
 }
 
-# === Main Logic ===
+# ============================================
+# Main Logic - Robust Venv Handling
+# ============================================
 
-# Environment setup (always run)
-Write-Host "=== Agentic Environment Init ===" -ForegroundColor Cyan
+Write-Host "=== Agentic Loop Environment Initialization ===" -ForegroundColor Cyan
+Write-Host "Project: $ProjectRoot" -ForegroundColor Gray
 
-# Locate Python (simplified)
+# 1. Locate Python
+Write-Host "`n[1/6] Locating Python..." -ForegroundColor Yellow
 $python = $null
-foreach ($c in @("python","py")) { 
-    try { if ((& $c --version 2>&1) -match "Python 3") { $python = $c; break } } catch {} 
+foreach ($candidate in @("python", "py")) {
+    try {
+        $ver = & $candidate --version 2>&1
+        if ($ver -match "Python 3\.(1[0-9])") {
+            $python = $candidate
+            Write-Host "  Found: $ver via $candidate" -ForegroundColor Green
+            break
+        }
+    } catch {}
 }
-if (-not $python) { Write-Error "Python not found"; exit 1 }
 
-$venv = Join-Path $ProjectRoot ".venv"
-$act  = Join-Path $venv "Scripts\Activate.ps1"
+if (-not $python) {
+    Write-Error "Python 3.10+ not found in PATH."
+    exit 1
+}
 
-if (-not (Test-Path $venv)) { & $python -m venv $venv }
-. $act
+# 2. Robust venv handling
+Write-Host "`n[2/6] Ensuring virtual environment..." -ForegroundColor Yellow
+
+$venvPath = Join-Path $ProjectRoot ".venv"
+$activateScript = Join-Path $venvPath "Scripts\Activate.ps1"
+
+$needsRecreate = $false
+
+if (Test-Path $venvPath) {
+    if (-not (Test-Path $activateScript)) {
+        Write-Host "  Existing .venv is broken (missing Activate.ps1). Recreating..." -ForegroundColor DarkYellow
+        $needsRecreate = $true
+    } else {
+        # Try to verify the venv Python works
+        $venvPython = Join-Path $venvPath "Scripts\python.exe"
+        if (Test-Path $venvPython) {
+            try {
+                $ver = & $venvPython --version 2>&1
+                Write-Host "  Existing venv is valid ($ver)" -ForegroundColor Green
+            } catch {
+                Write-Host "  Existing venv is broken. Recreating..." -ForegroundColor DarkYellow
+                $needsRecreate = $true
+            }
+        } else {
+            $needsRecreate = $true
+        }
+    }
+} else {
+    $needsRecreate = $true
+}
+
+if ($needsRecreate) {
+    if (Test-Path $venvPath) {
+        Remove-Item $venvPath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Write-Host "  Creating new virtual environment..." -ForegroundColor Yellow
+    & $python -m venv $venvPath
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to create virtual environment."
+        exit 1
+    }
+    Write-Host "  Virtual environment created successfully." -ForegroundColor Green
+}
+
+# 3. Activate
+Write-Host "`n[3/6] Activating virtual environment..." -ForegroundColor Yellow
+if (-not (Test-Path $activateScript)) {
+    Write-Error "Activation script is missing after creation attempt."
+    exit 1
+}
+. $activateScript
+Write-Host "  Virtual environment activated." -ForegroundColor Green
+
+# 4. Upgrade pip + install dependencies
+Write-Host "`n[4/6] Upgrading pip and installing dependencies..." -ForegroundColor Yellow
+python -m pip install --upgrade pip --quiet
 
 if (Test-Path (Join-Path $ProjectRoot "pyproject.toml")) {
     python -m pip install -e "$ProjectRoot.[dev]" --quiet
+    Write-Host "  Dependencies installed from pyproject.toml." -ForegroundColor Green
+} elseif (Test-Path (Join-Path $ProjectRoot "requirements.txt")) {
+    python -m pip install -r (Join-Path $ProjectRoot "requirements.txt") --quiet
+    Write-Host "  Dependencies installed from requirements.txt." -ForegroundColor Green
+} else {
+    Write-Host "  No dependency file found. Skipping installation." -ForegroundColor DarkYellow
 }
 
-# Set safe flags for agents
+# 5. Set helpful environment variables
+Write-Host "`n[5/6] Setting agent-friendly environment variables..." -ForegroundColor Yellow
+[Environment]::SetEnvironmentVariable("POSH_BASH_CHAINING_NONINTERACTIVE", "1", "User")
 $env:POSH_BASH_CHAINING_NONINTERACTIVE = "1"
+Write-Host "  Variables set for non-interactive sessions." -ForegroundColor Green
 
-Write-Host "Environment ready." -ForegroundColor Green
+# 6. Prompt generation
+Write-Host "`n[6/6] Checking for task description..." -ForegroundColor Yellow
 
-# Prompt generation
-$task = $TaskDescription
-if (-not $task) { $task = Get-AutoTaskDescription -MaxLength $MaxTaskLength }
+$finalTask = $TaskDescription
+if (-not $finalTask) {
+    $finalTask = Get-AutoTaskDescription -MaxLength $MaxTaskLength
+}
 
-if ($task) {
-    $prompt = Generate-AgentStarterPrompt -Task $task -SpecFile $TaskSpecFile
+if ($finalTask) {
+    $prompt = Generate-AgentStarterPrompt -Task $finalTask -SpecFile $TaskSpecFile
 
     if ($OutputFile) {
         $out = if ([System.IO.Path]::IsPathRooted($OutputFile)) { $OutputFile } else { Join-Path $ProjectRoot $OutputFile }
         Set-Content -Path $out -Value $prompt -Encoding UTF8
-        Write-Host "Prompt saved to $out" -ForegroundColor Green
+        Write-Host "  Starter prompt saved to: $out" -ForegroundColor Green
     }
 
-    Write-Host "`n=== Ready-to-use prompt for Blackbox ===`n" -ForegroundColor Yellow
+    Write-Host "`n=== Ready-to-use prompt for Blackbox ===" -ForegroundColor Yellow
     Write-Host $prompt
+    Write-Host "========================================" -ForegroundColor Yellow
 } else {
-    Write-Host "No task description found. Provide one with -TaskDescription or create TODO.md / TASK_SPECIFICATION.md"
+    Write-Host "  No task description found automatically." -ForegroundColor DarkYellow
 }
+
+Write-Host "`n=== Environment initialization completed successfully ===" -ForegroundColor Green

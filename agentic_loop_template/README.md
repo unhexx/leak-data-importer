@@ -24,7 +24,7 @@ agentic_loop_template/
 ├── SPRINTPLAN_TEMPLATE.md
 ├── setup_env.ps1                 # Python venv + requirements bootstrap
 ├── Profile-Bootstrap.ps1         # PowerShell profile helper
-├── Agent-Init.ps1                # One-time setup for Blackbox + VSCode
+├── Agent-Init.ps1                # Robust setup for Blackbox + VSCode (auto-heals broken .venv)
 └── Agent-Init.md                 # Detailed guide for Blackbox / MiniMax2.5 in VSCode
 ```
 
