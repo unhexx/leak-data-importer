@@ -1,0 +1,5 @@
+# This directory is for processed / normalized output data.
+#
+# IMPORTANT: Do NOT commit sensitive processed datasets here unless they have been
+# properly anonymized / tokenized according to your data handling policy.
+# This .gitkeep exists only to preserve the directory structure.

@@ -1,0 +1,66 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "leak-data-importer"
+version = "0.1.0"
+description = "Securely import, normalize, and process leaked or sensitive data sets"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "unhexx"}
+]
+keywords = ["data-import", "leak", "security", "incident-response", "data-processing"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    # Core dependencies will be added here as features are implemented
+    # "pandas>=2.0",
+    # "typer[all]>=0.9",
+    # "rich>=13",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "pre-commit>=3.5",
+]
+
+[project.scripts]
+leak-data-importer = "leak_data_importer.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/unhexx/leak-data-importer"
+Repository = "https://github.com/unhexx/leak-data-importer"
+Issues = "https://github.com/unhexx/leak-data-importer/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
