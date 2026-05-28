@@ -11,7 +11,8 @@
     - Installs dependencies from pyproject.toml
     - Installs the posh-bash-chaining tool with agent-friendly settings
     - Sets environment variables that help non-interactive agents
-    - Prints ready-to-use instructions for the Blackbox agent
+    - Can automatically generate a high-quality starter prompt by reading
+      TASK_SPECIFICATION.md or TODO.md (no need to pass -TaskDescription)
 #>
 
 [CmdletBinding()]
@@ -19,12 +20,43 @@ param(
     [string]$TaskDescription,
     [string]$TaskSpecFile = "TASK_SPECIFICATION.md",
     [string]$OutputFile,
-    [switch]$GeneratePromptOnly
+    [switch]$GeneratePromptOnly,
+    [int]$MaxTaskLength = 2800
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $TemplateDir = $PSScriptRoot
+
+function Get-AutoTaskDescription {
+    param([int]$MaxLength = 2800)
+
+    $candidates = @(
+        (Join-Path $ProjectRoot "TASK_SPECIFICATION.md"),
+        (Join-Path $ProjectRoot "TODO.md"),
+        (Join-Path $ProjectRoot "docs\TASK_SPECIFICATION.md")
+    )
+
+    foreach ($file in $candidates) {
+        if (Test-Path $file) {
+            try {
+                $content = Get-Content $file -Raw -ErrorAction Stop
+                $content = $content.Trim()
+
+                if ($content.Length -gt $MaxLength) {
+                    $content = $content.Substring(0, $MaxLength) + "`n... (truncated)"
+                }
+
+                Write-Host "  ✓ Auto-detected task from: $(Split-Path $file -Leaf)" -ForegroundColor Green
+                return $content
+            } catch {
+                Write-Host "  ⚠ Could not read $file" -ForegroundColor DarkYellow
+            }
+        }
+    }
+
+    return $null
+}
 
 Write-Host "=== Agentic Loop Initialization for Blackbox + MiniMax2.5 ===" -ForegroundColor Cyan
 Write-Host "Project: $ProjectRoot" -ForegroundColor Gray
@@ -92,12 +124,11 @@ $env:BLACKBOX_AGENT_MODE = "1"
 
 Write-Host "✓ Environment variables set for current session and user." -ForegroundColor Green
 
-# 5. Generate task-specific starter prompt (if requested)
+# 5. Generate task-specific starter prompt (if requested or auto-detected)
 function Generate-AgentStarterPrompt {
     param(
         [string]$Task,
-        [string]$SpecFile,
-        [string]$ProjectPath = $ProjectRoot
+        [string]$SpecFile = "TASK_SPECIFICATION.md"
     )
 
     $prompt = @"
@@ -139,11 +170,28 @@ Start now by assessing the current state of the repository and the task specific
     return $prompt
 }
 
-# Main prompt generation logic
-if ($GeneratePromptOnly -or $TaskDescription) {
-    Write-Host "`n[5/5] Generating task-specific starter prompt..." -ForegroundColor Cyan
+# === Auto-detect task description if not provided ===
+$finalTaskDescription = $TaskDescription
+$finalSpecFile = $TaskSpecFile
 
-    $generatedPrompt = Generate-AgentStarterPrompt -Task $TaskDescription -SpecFile $TaskSpecFile
+if (-not $finalTaskDescription) {
+    Write-Host "`n[5/5] No explicit task description provided. Trying to auto-detect..." -ForegroundColor Yellow
+    $autoTask = Get-AutoTaskDescription -MaxLength $MaxTaskLength
+
+    if ($autoTask) {
+        $finalTaskDescription = $autoTask
+        Write-Host "  Using auto-detected task description." -ForegroundColor Green
+    } else {
+        Write-Host "  ⚠ Could not auto-detect task from TASK_SPECIFICATION.md or TODO.md" -ForegroundColor DarkYellow
+        Write-Host "    You can provide it manually with -TaskDescription" -ForegroundColor DarkYellow
+    }
+}
+
+# Main prompt generation logic
+if ($GeneratePromptOnly -or $finalTaskDescription) {
+    Write-Host "`nGenerating task-specific starter prompt for the agent..." -ForegroundColor Cyan
+
+    $generatedPrompt = Generate-AgentStarterPrompt -Task $finalTaskDescription -SpecFile $finalSpecFile
 
     if ($OutputFile) {
         $fullOutputPath = if ([System.IO.Path]::IsPathRooted($OutputFile)) { $OutputFile } else { Join-Path $ProjectRoot $OutputFile }
@@ -156,7 +204,7 @@ if ($GeneratePromptOnly -or $TaskDescription) {
     Write-Host "=============================================" -ForegroundColor Yellow
 
     if (-not $GeneratePromptOnly) {
-        Write-Host "`nEnvironment is also prepared. You can now give the prompt above to the agent." -ForegroundColor Green
+        Write-Host "`nEnvironment is prepared. You can copy the prompt above and send it to the agent." -ForegroundColor Green
     }
 
     exit 0
