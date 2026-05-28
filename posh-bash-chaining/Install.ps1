@@ -79,8 +79,9 @@ Write-Host ""
 Write-Host "В начало твоего профиля добавлена строка:" -ForegroundColor DarkGray
 Write-Host "    $bootstrapLine" -ForegroundColor White
 Write-Host ""
-Write-Host "Теперь инструмент будет подключаться автоматически," -ForegroundColor DarkGray
-Write-Host "даже если агент запускает новые процессы PowerShell." -ForegroundColor DarkGray
+Write-Host "Теперь инструмент будет подключаться автоматически." -ForegroundColor DarkGray
+Write-Host "В сессиях агентов (Blackbox и др.) автоматически отключается PSReadLine," -ForegroundColor DarkGray
+Write-Host "чтобы не ломать захват вывода команд." -ForegroundColor DarkGray
 Write-Host ""
 Write-Host "Рекомендация: полностью перезапусти терминал в VSCode." -ForegroundColor Yellow
 Write-Host ""

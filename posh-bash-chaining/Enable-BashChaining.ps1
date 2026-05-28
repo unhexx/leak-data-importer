@@ -246,11 +246,33 @@ function Convert-BashRedirectionsToPowerShell {
 }
 
 # =============================================================================
-# PSReadLine
+# PSReadLine (только для интерактивных сессий)
 # =============================================================================
 
+$shouldRegisterHandler = $true
+
+# Строгие проверки, чтобы не ломать вывод у агентов (Blackbox и др.)
 if ($host.Name -ne 'ConsoleHost') {
-    Write-Warning "Скрипт работает только в интерактивной консоли."
+    $shouldRegisterHandler = $false
+}
+
+if ([Environment]::UserInteractive -eq $false) {
+    $shouldRegisterHandler = $false
+}
+
+# Если вывод перенаправлен — почти наверняка неинтерактивная сессия агента
+if ([Console]::IsOutputRedirected -or [Console]::IsErrorRedirected) {
+    $shouldRegisterHandler = $false
+}
+
+# Явный флаг для агентов
+if ($env:POSH_BASH_CHAINING_INTERACTIVE -eq '0' -or $env:POSH_BASH_CHAINING_NONINTERACTIVE -eq '1') {
+    $shouldRegisterHandler = $false
+}
+
+if (-not $shouldRegisterHandler) {
+    # В неинтерактивном режиме просто экспортируем функции преобразования.
+    # Агент может использовать их явно: Convert-BashOperatorsToPowerShell
     return
 }
 
@@ -344,9 +366,13 @@ function Get-BashChainingStatus {
     }
 }
 
-Write-Host ''
-Write-Host 'Поддержка bash-операторов AND-AND и OR-OR успешно включена.' -ForegroundColor Green
-Write-Host ''
+# Успешное сообщение только в интерактивном режиме
+if ($shouldRegisterHandler) {
+    Write-Host ''
+    Write-Host 'Поддержка bash-операторов AND-AND и OR-OR успешно включена (интерактивный режим).' -ForegroundColor Green
+    Write-Host 'Для неинтерактивных сессий (агенты) используйте функции Convert-BashOperatorsToPowerShell и Convert-BashRedirectionsToPowerShell напрямую.' -ForegroundColor DarkGray
+    Write-Host ''
+}
 Write-Host 'Примеры (теперь работают):' -ForegroundColor DarkGray
 Write-Host '  cmd1 [AND-AND] cmd2 [OR-OR] cmd3 [AND-AND] cmd4' -ForegroundColor White
 Write-Host '  build [AND-AND] test [BOTH-REDIR] build.log [OR-OR] echo failed' -ForegroundColor White
