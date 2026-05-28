@@ -40,15 +40,13 @@ function Get-AutoTaskDescription {
     foreach ($file in $candidates) {
         if (Test-Path $file) {
             try {
-                $content = Get-Content $file -Raw -ErrorAction Stop
-                $content = $content.Trim()
+                $raw = Get-Content $file -Raw -ErrorAction Stop
+                $content = Extract-SmartTaskSummary -Content $raw -FileName (Split-Path $file -Leaf) -MaxLength $MaxLength
 
-                if ($content.Length -gt $MaxLength) {
-                    $content = $content.Substring(0, $MaxLength) + "`n... (truncated)"
+                if ($content) {
+                    Write-Host "  ✓ Auto-detected task from: $(Split-Path $file -Leaf)" -ForegroundColor Green
+                    return $content
                 }
-
-                Write-Host "  ✓ Auto-detected task from: $(Split-Path $file -Leaf)" -ForegroundColor Green
-                return $content
             } catch {
                 Write-Host "  ⚠ Could not read $file" -ForegroundColor DarkYellow
             }
@@ -56,6 +54,54 @@ function Get-AutoTaskDescription {
     }
 
     return $null
+}
+
+function Extract-SmartTaskSummary {
+    param(
+        [string]$Content,
+        [string]$FileName,
+        [int]$MaxLength = 2800
+    )
+
+    $Content = $Content.Trim()
+
+    if ($FileName -like "*TODO*") {
+        # Try to extract the most relevant sections from TODO.md
+        $patterns = @(
+            '(?s)(##\s*(Current Tasks|В работе|Текущие задачи).*?)(?=\n##|\Z)',
+            '(?s)(##\s*(TODO|Задачи|План).*?)(?=\n##|\Z)',
+            '(?s)(##\s*In Progress.*?)(?=\n##|\Z)'
+        )
+
+        foreach ($pattern in $patterns) {
+            if ($Content -match $pattern) {
+                $extracted = $Matches[1].Trim()
+                if ($extracted.Length -gt 100) {
+                    if ($extracted.Length -gt $MaxLength) {
+                        $extracted = $extracted.Substring(0, $MaxLength) + "`n... (truncated)"
+                    }
+                    return $extracted
+                }
+            }
+        }
+    }
+    elseif ($FileName -like "*TASK_SPECIFICATION*" -or $FileName -like "*Specification*") {
+        # For specification files, take the title + first major description block
+        if ($Content -match '(?s)^(#+\s*.+?)(?=\n##|\n\n\n|\Z)') {
+            $extracted = $Matches[1].Trim()
+            if ($extracted.Length -gt $MaxLength) {
+                $extracted = $extracted.Substring(0, $MaxLength) + "`n... (truncated)"
+            }
+            return $extracted
+        }
+    }
+
+    # Fallback: take the beginning of the file (first meaningful content)
+    if ($Content.Length -gt $MaxLength) {
+        $Content = $Content.Substring(0, $MaxLength) + "`n... (truncated)"
+    }
+
+    return $Content
 }
 
 Write-Host "=== Agentic Loop Initialization for Blackbox + MiniMax2.5 ===" -ForegroundColor Cyan

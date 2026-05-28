@@ -136,7 +136,7 @@ The script will automatically search for the task description in this priority o
 2. `TODO.md`
 3. `docs/TASK_SPECIFICATION.md`
 
-It reads the beginning of the file (up to ~2800 characters) and uses it to build a rich, contextual prompt for the agent.
+When reading `TODO.md`, it tries to intelligently extract the most relevant sections (e.g. "## Current Tasks", "## In Progress", "## TODO"). For specification files it takes the main description block. This produces a much cleaner and more useful prompt than just dumping the raw file.
 
 ### Manual mode (if you want full control)
 
