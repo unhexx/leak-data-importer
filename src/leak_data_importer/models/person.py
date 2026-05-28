@@ -11,29 +11,37 @@ from typing import Optional
 class PersonRecord:
     """Normalized record for a person from leaked data.
 
-    All identifiers are stored in normalized form where possible.
-    Source-specific raw values are kept in raw_data for traceability.
+    Designed to be robust against the messy hybrid report formats
+    commonly found in Russian breach dumps (report_*.txt style).
     """
 
     full_name: Optional[str] = None
     birth_date: Optional[date] = None
 
-    # Normalized identifiers
-    phones: list[str] = field(default_factory=list)          # E.164 format when possible
+    # Core normalized identifiers (deduplicated)
+    phones: list[str] = field(default_factory=list)
     emails: list[str] = field(default_factory=list)
-    passports: list[str] = field(default_factory=list)       # Russian internal passport
-    snils: list[str] = field(default_factory=list)           # Normalized SNILS
-    inn: list[str] = field(default_factory=list)             # INN (tax ID)
+    passports: list[str] = field(default_factory=list)
+    snils: list[str] = field(default_factory=list)
+    inn: list[str] = field(default_factory=list)
 
-    # Metadata
+    # Additional fields frequently seen in these dumps
+    esia_id: Optional[str] = None
+    addresses: list[str] = field(default_factory=list)
+    registration_dates: list[str] = field(default_factory=list)
+    other_ids: dict[str, list[str]] = field(default_factory=dict)  # ICCID, IMSI, VIN, etc.
+
+    # Provenance & quality
     source_file: Optional[str] = None
     source_block_id: Optional[str] = None
-    confidence: Optional[float] = None                       # 0.0 - 1.0 aggregated
+    confidence: Optional[float] = None          # aggregated from (NN/NN) or (xNN) markers
+    parsing_strategy: Optional[str] = None      # which strategy extracted this record
 
-    # Keep original messy values for auditing / re-processing
-    raw_data: dict[str, str] = field(default_factory=dict)
+    # Full original messy data for audit / reprocessing
+    raw_data: dict[str, list[str]] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        d = {k: v for k, v in self.__dict__.items() if k != "raw_data"}
-        d["raw_data"] = self.raw_data
-        return d
+        return {
+            k: v for k, v in self.__dict__.items()
+            if not k.startswith("_")
+        }

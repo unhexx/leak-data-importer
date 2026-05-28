@@ -53,6 +53,11 @@ def main() -> int:
         action="store_true",
         help="Validate and preview without writing output",
     )
+    parser.add_argument(
+        "--stats",
+        action="store_true",
+        help="Show detailed parsing statistics (very useful for txt_report)",
+    )
 
     args = parser.parse_args()
 
@@ -91,16 +96,24 @@ def main() -> int:
 
         try:
             importer = importer_cls(source)
-            records = list(importer.iter_records())
-            print(f"[SUCCESS] Parsed {len(records)} records")
 
-            if args.dry_run:
-                print("\n--- First 3 records (dry-run) ---")
-                for rec in records[:3]:
-                    print(f"  {rec.full_name} | phones={rec.phones} | emails={rec.emails}")
+            if args.stats or fmt == "txt_report":
+                records, stats = importer.parse_with_stats() if hasattr(importer, "parse_with_stats") else (list(importer.iter_records()), None)
+                print(f"[SUCCESS] Extracted {len(records)} records from {stats.total_blocks if stats else '?'} blocks")
+                if stats:
+                    print("Strategy breakdown:", stats.by_strategy)
+                    print("Low confidence records:", stats.low_confidence_records)
             else:
-                # TODO: implement actual export (csv/json/parquet)
-                print("[INFO] Writing output is not implemented yet. Use --dry-run for now.")
+                records = list(importer.iter_records())
+                print(f"[SUCCESS] Parsed {len(records)} records")
+
+            if args.dry_run or args.stats:
+                if records:
+                    print("\n--- Sample records ---")
+                    for rec in records[:3]:
+                        print(f"  {rec.full_name} | phones={len(rec.phones)} | emails={len(rec.emails)} | strategy={rec.parsing_strategy}")
+            else:
+                print("[INFO] Actual writing to output not implemented yet.")
         except Exception as e:
             print(f"[ERROR] {e}")
             return 1
