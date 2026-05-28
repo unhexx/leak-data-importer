@@ -16,14 +16,16 @@ The agent cycles through roles (Orchestrator → Coder → Tester → Debugger �
 ```
 agentic_loop_template/
 ├── README.md
-├── SYSTEM_PROMPT.md              # Main system prompt (fill {{placeholders}})
-├── AGENT_ROLES.md                # Detailed instructions per role
-├── HANDOFF_SCHEMA.md             # JSON handoff contract
-├── TOOLS_REGISTRY.md             # Available tools
-├── PROJECT_CONTEXT_TEMPLATE.md   # Template for PROJECT_CONTEXT.md
-├── SPRINTPLAN_TEMPLATE.md        # Template for SPRINTPLAN.md
-├── setup_env.ps1                 # Robust venv + requirements bootstrap (call at start of cycles)
-└── Profile-Bootstrap.ps1         # (optional) PowerShell profile helper for non-interactive sessions
+├── SYSTEM_PROMPT.md              # Main system prompt
+├── AGENT_ROLES.md
+├── HANDOFF_SCHEMA.md
+├── TOOLS_REGISTRY.md
+├── PROJECT_CONTEXT_TEMPLATE.md
+├── SPRINTPLAN_TEMPLATE.md
+├── setup_env.ps1                 # Python venv + requirements bootstrap
+├── Profile-Bootstrap.ps1         # PowerShell profile helper
+├── Agent-Init.ps1                # One-time setup for Blackbox + VSCode
+└── Agent-Init.md                 # Detailed guide for Blackbox / MiniMax2.5 in VSCode
 ```
 
 ## Quick Start
@@ -31,8 +33,10 @@ agentic_loop_template/
 1. Copy the template into your project root.
 2. Fill all `{{ ... }}` placeholders in `SYSTEM_PROMPT.md`.
 3. Create `TASK_SPECIFICATION.md` (the single source of truth).
-4. Run `./agentic_loop_template/setup_env.ps1` (or let the Orchestrator call it).
-5. Start the loop with the content of `SYSTEM_PROMPT.md` as the system prompt for MiniMax2.5.
+4. **For Blackbox + VSCode users**: Run `.\agentic_loop_template\Agent-Init.ps1` (highly recommended).
+5. Run the environment bootstrap and start the loop using `SYSTEM_PROMPT.md`.
+
+See `Agent-Init.md` for detailed instructions tailored to Blackbox + MiniMax2.5 in VSCode.
 
 ## Environment Management (Critical)
 
