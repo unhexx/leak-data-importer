@@ -9,8 +9,8 @@ param()
 $ErrorActionPreference = 'Stop'
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$mainScript = Join-Path $scriptDir 'Enable-BashChaining.ps1'
-$loadLine = ". '$mainScript'"
+$bootstrapScript = Join-Path $scriptDir 'Profile-Bootstrap.ps1'
+$bootstrapLine = ". '$bootstrapScript'"
 
 $profilePath = $PROFILE.CurrentUserAllHosts
 
@@ -19,15 +19,29 @@ if (-not (Test-Path $profilePath)) {
     return
 }
 
-$content = Get-Content $profilePath -Raw
+$content = Get-Content $profilePath -Raw -ErrorAction SilentlyContinue
+if ($null -eq $content) { $content = '' }
+if ($content -is [array]) { $content = $content -join "`r`n" }
 
-if ($content -notlike "*$loadLine*") {
+$hasBootstrap = $content -like "*$bootstrapLine*"
+
+# Также чистим старые прямые ссылки на Enable-BashChaining
+$oldPatterns = @('Enable-BashChaining\.ps1', 'scripts\\Enable-BashChaining')
+
+$cleaned = $content
+foreach ($pat in $oldPatterns) {
+    $cleaned = $cleaned -replace "(?m)^.*$pat.*\r?\n?", ""
+}
+
+if (-not $hasBootstrap -and ($cleaned -eq $content)) {
     Write-Host "posh-bash-chaining не найден в профиле." -ForegroundColor Yellow
     return
 }
 
-$newContent = ($content -split "`r?`n" | Where-Object { $_ -notlike "*$loadLine*" }) -join "`r`n"
-Set-Content -Path $profilePath -Value $newContent.TrimEnd()
+# Удаляем строку с bootstrap
+$newContent = ($cleaned -split "`r?`n" | Where-Object { $_ -notlike "*$bootstrapLine*" }) -join "`r`n"
 
-Write-Host "✓ posh-bash-chaining удалён из профиля." -ForegroundColor Green
+Set-Content -Path $profilePath -Value $newContent.TrimEnd() -Encoding UTF8
+
+Write-Host "✓ posh-bash-chaining полностью удалён из профиля." -ForegroundColor Green
 Write-Host "Перезапусти PowerShell, чтобы изменения применились." -ForegroundColor DarkGray
