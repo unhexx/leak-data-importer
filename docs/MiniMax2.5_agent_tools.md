@@ -59,6 +59,8 @@ Example:
 .\.venv\Scripts\python.exe -m pytest tests/ -q --tb=short
 ```
 
+> Для использования bash-операторов (`&&`, `||`, `|&`, `&>`) в обычной Windows PowerShell смотри `posh-bash-chaining/` — там есть удобный установщик.
+
 ### 4. Project-Specific High-Level Tools (Recommended to Implement)
 
 The agent should eventually be able to call these via CLI or Python:

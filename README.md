@@ -77,3 +77,20 @@ MIT License — see [LICENSE](LICENSE) file.
 ## Disclaimer
 
 This project does **not** distribute or host any leaked data. Users are fully responsible for the legality and ethics of the data they process with this tool.
+
+## Windows helpers
+
+Для комфортной работы в классической Windows PowerShell в репозитории есть инструмент:
+
+**posh-bash-chaining**
+
+Позволяет использовать `&&`, `||`, `|&`, `&>` и `>&` точно как в bash.
+
+Установка:
+
+```powershell
+cd posh-bash-chaining
+.\Install.ps1
+```
+
+Подробнее — смотри [posh-bash-chaining/README.md](posh-bash-chaining/README.md)
