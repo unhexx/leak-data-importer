@@ -507,9 +507,17 @@ class DossierParser:
             if "паспорт" in stripped.lower():
                 current["passport_used"] = stripped
 
-            # Companions / poputchik
+            # Companions / poputchik - improved extraction
             if "попутчик" in stripped.lower() or "сопровождающий" in stripped.lower():
-                current.setdefault("companions", []).append(stripped)
+                companion = {"raw": stripped}
+                # Try to extract FIO of companion
+                fio_match = re.search(r"([А-ЯЁ][а-яё\-]+\s+[А-ЯЁ][а-яё\-]+(?:\s+[А-ЯЁ][а-яё\-]+)?)", stripped)
+                if fio_match:
+                    companion["fio"] = fio_match.group(1).strip()
+                # Passport or document of companion
+                if "паспорт" in stripped.lower():
+                    companion["document"] = stripped
+                current.setdefault("companions", []).append(companion)
 
             # General key:value
             if ":" in stripped:
@@ -574,21 +582,40 @@ class DossierParser:
                 if not rec or len(rec) < 10:
                     continue
 
-                # Simple key-value extraction for now (can be made much smarter)
-                data: dict[str, str] = {}
+                # Deep key-value extraction + normalization inside each source record
+                data: dict[str, Any] = {}
                 for line in rec.splitlines():
                     if ":" in line:
                         k, _, v = line.partition(":")
                         k = k.strip()
                         v = v.strip()
-                        if k and v:
+                        if not k or not v:
+                            continue
+
+                        k_lower = k.lower()
+
+                        # Smart normalization per key type
+                        if any(x in k_lower for x in ["тел", "моб", "phone"]):
+                            norm = normalize_phone(v)
+                            data[k] = norm or v
+                        elif "дата" in k_lower:
+                            data[k] = normalize_datetime(v) or v
+                        elif any(x in k_lower for x in ["паспорт", "документ"]):
+                            data[k] = normalize_passport(v) or v
+                        elif "инн" in k_lower:
+                            data[k] = normalize_inn(v) or v
+                        elif "снилс" in k_lower:
+                            data[k] = normalize_snils(v) or v
+                        elif "email" in k_lower or "почта" in k_lower:
+                            data[k] = v.lower()
+                        else:
                             data[k] = v
 
                 findings.append({
                     "source_name": source_name,
                     "record_index": idx,
                     "data": data,
-                    "raw_text": rec[:2000],
+                    "raw_text": rec[:2500],
                 })
 
         return findings
