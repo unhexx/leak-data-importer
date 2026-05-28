@@ -1,17 +1,15 @@
-<#
+﻿<#
 .SYNOPSIS
-    One-time / per-session initialization script for working with Blackbox AI + MiniMax2.5 in VSCode.
+    Robust initialization script for Blackbox + MiniMax2.5 agentic development in VSCode.
 
 .DESCRIPTION
-    This script prepares the local development environment so that an AI agent
-    (especially Blackbox) can reliably work with the agentic_loop_template.
+    Prepares a reliable local Python virtual environment and can generate
+    a ready-to-use starter prompt for Blackbox.
 
-    It:
-    - Creates and activates the Python virtual environment
-    - Installs dependencies from pyproject.toml
-    - Installs the posh-bash-chaining tool with agent-friendly settings
-    - Sets environment variables that help non-interactive agents
-    - Prints ready-to-use instructions for the Blackbox agent
+    Key improvements:
+    - Automatically creates or repairs broken .venv
+    - Clear, step-by-step messages with status
+    - Auto-detects task from TODO.md or TASK_SPECIFICATION.md
 #>
 
 [CmdletBinding()]
@@ -19,184 +17,192 @@ param(
     [string]$TaskDescription,
     [string]$TaskSpecFile = "TASK_SPECIFICATION.md",
     [string]$OutputFile,
-    [switch]$GeneratePromptOnly
+    [switch]$GeneratePromptOnly,
+    [int]$MaxTaskLength = 2800
 )
 
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
-$TemplateDir = $PSScriptRoot
 
-Write-Host "=== Agentic Loop Initialization for Blackbox + MiniMax2.5 ===" -ForegroundColor Cyan
+function Get-AutoTaskDescription {
+    param([int]$MaxLength = 2800)
+
+    $candidates = @(
+        (Join-Path $ProjectRoot "TASK_SPECIFICATION.md"),
+        (Join-Path $ProjectRoot "TODO.md")
+    )
+
+    foreach ($file in $candidates) {
+        if (Test-Path $file) {
+            try {
+                $raw = Get-Content $file -Raw -ErrorAction Stop
+                if ($raw.Length -gt $MaxLength) {
+                    $raw = $raw.Substring(0, $MaxLength) + "`n... (truncated)"
+                }
+                Write-Host "  Auto-detected task from: $(Split-Path $file -Leaf)" -ForegroundColor Green
+                return $raw.Trim()
+            } catch {}
+        }
+    }
+    return $null
+}
+
+function Generate-AgentStarterPrompt {
+    param([string]$Task, [string]$SpecFile = "TASK_SPECIFICATION.md")
+
+    $lines = @(
+        "We are starting an autonomous agentic development loop using the template in agentic_loop_template/.",
+        "",
+        "**Current Task:**",
+        $Task,
+        "",
+        "**Instructions:**",
+        "",
+        "1. First, ensure the local Python environment is ready by running:",
+        "   powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1",
+        "",
+        "2. Activate the virtual environment:",
+        "   . .\.venv\Scripts\Activate.ps1",
+        "",
+        "3. Read in this order:",
+        "   - docs/agentic_loop/README.md",
+        "   - docs/agentic_loop/SYSTEM_PROMPT.md",
+        "   - docs/agentic_loop/Agent-Init.md",
+        "   - $SpecFile",
+        "",
+        "4. Start as ORCHESTRATOR according to the SYSTEM_PROMPT.",
+        "",
+        "Rules:",
+        "- Write all git commits in natural Russian, as a real human developer.",
+        "- Never mention AI, LLM, agent, MiniMax, Grok, Claude, etc. in commit messages.",
+        "- Always work inside the local .venv."
+    )
+
+    return ($lines -join "`r`n")
+}
+
+# ============================================
+# Main Logic - Robust Venv Handling
+# ============================================
+
+Write-Host "=== Agentic Loop Environment Initialization ===" -ForegroundColor Cyan
+Write-Host "Reminder: Before starting work, the agent must complete the Pre-Flight Checklist in SYSTEM_PROMPT.md (version 2.1)." -ForegroundColor DarkGray
 Write-Host "Project: $ProjectRoot" -ForegroundColor Gray
 
-# 1. Python Environment
-Write-Host "`n[1/5] Preparing Python virtual environment..." -ForegroundColor Yellow
-
+# 1. Locate Python
+Write-Host "`n[1/6] Locating Python..." -ForegroundColor Yellow
 $python = $null
-foreach ($cmd in @("python", "py")) {
+foreach ($candidate in @("python", "py")) {
     try {
-        $ver = & $cmd --version 2>&1
+        $ver = & $candidate --version 2>&1
         if ($ver -match "Python 3\.(1[0-9])") {
-            $python = $cmd
+            $python = $candidate
+            Write-Host "  Found: $ver via $candidate" -ForegroundColor Green
             break
         }
     } catch {}
 }
 
 if (-not $python) {
-    Write-Error "Python 3.10+ not found. Please install Python and add it to PATH."
+    Write-Error "Python 3.10+ not found in PATH."
     exit 1
 }
 
+# 2. Robust venv handling
+Write-Host "`n[2/6] Ensuring virtual environment..." -ForegroundColor Yellow
+
 $venvPath = Join-Path $ProjectRoot ".venv"
-$activate = Join-Path $venvPath "Scripts\Activate.ps1"
+$activateScript = Join-Path $venvPath "Scripts\Activate.ps1"
 
-if (-not (Test-Path $venvPath)) {
-    Write-Host "Creating .venv..." -ForegroundColor DarkYellow
+$needsRecreate = $false
+
+if (Test-Path $venvPath) {
+    if (-not (Test-Path $activateScript)) {
+        Write-Host "  Existing .venv is broken (missing Activate.ps1). Recreating..." -ForegroundColor DarkYellow
+        $needsRecreate = $true
+    } else {
+        # Try to verify the venv Python works
+        $venvPython = Join-Path $venvPath "Scripts\python.exe"
+        if (Test-Path $venvPython) {
+            try {
+                $ver = & $venvPython --version 2>&1
+                Write-Host "  Existing venv is valid ($ver)" -ForegroundColor Green
+            } catch {
+                Write-Host "  Existing venv is broken. Recreating..." -ForegroundColor DarkYellow
+                $needsRecreate = $true
+            }
+        } else {
+            $needsRecreate = $true
+        }
+    }
+} else {
+    $needsRecreate = $true
+}
+
+if ($needsRecreate) {
+    if (Test-Path $venvPath) {
+        Remove-Item $venvPath -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Write-Host "  Creating new virtual environment..." -ForegroundColor Yellow
     & $python -m venv $venvPath
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to create virtual environment."
+        exit 1
+    }
+    Write-Host "  Virtual environment created successfully." -ForegroundColor Green
 }
 
-. $activate
-Write-Host "✓ Virtual environment activated." -ForegroundColor Green
+# 3. Activate
+Write-Host "`n[3/6] Activating virtual environment..." -ForegroundColor Yellow
+if (-not (Test-Path $activateScript)) {
+    Write-Error "Activation script is missing after creation attempt."
+    exit 1
+}
+. $activateScript
+Write-Host "  Virtual environment activated." -ForegroundColor Green
 
-# 2. Install dependencies
-Write-Host "`n[2/5] Installing project dependencies..." -ForegroundColor Yellow
+# 4. Upgrade pip + install dependencies
+Write-Host "`n[4/6] Upgrading pip and installing dependencies..." -ForegroundColor Yellow
+python -m pip install --upgrade pip --quiet
+
 if (Test-Path (Join-Path $ProjectRoot "pyproject.toml")) {
-    python -m pip install --upgrade pip --quiet
     python -m pip install -e "$ProjectRoot.[dev]" --quiet
-    Write-Host "✓ Dependencies installed from pyproject.toml" -ForegroundColor Green
+    Write-Host "  Dependencies installed from pyproject.toml." -ForegroundColor Green
+} elseif (Test-Path (Join-Path $ProjectRoot "requirements.txt")) {
+    python -m pip install -r (Join-Path $ProjectRoot "requirements.txt") --quiet
+    Write-Host "  Dependencies installed from requirements.txt." -ForegroundColor Green
 } else {
-    Write-Host "⚠ No pyproject.toml found. Skipping dependency installation." -ForegroundColor DarkYellow
+    Write-Host "  No dependency file found. Skipping installation." -ForegroundColor DarkYellow
 }
 
-# 3. Install posh-bash-chaining (for && || |& support in agents)
-Write-Host "`n[3/5] Setting up posh-bash-chaining (for bash-style operators)..." -ForegroundColor Yellow
-$chainingDir = Join-Path $ProjectRoot "posh-bash-chaining"
-if (Test-Path (Join-Path $chainingDir "Install.ps1")) {
-    Push-Location $chainingDir
-    .\Install.ps1 | Out-Null
-    Pop-Location
-    Write-Host "✓ posh-bash-chaining installed / updated." -ForegroundColor Green
-} else {
-    Write-Host "⚠ posh-bash-chaining not found in project." -ForegroundColor DarkYellow
-}
-
-# 4. Set environment variables helpful for Blackbox / non-interactive agents
-Write-Host "`n[4/5] Setting agent-friendly environment variables..." -ForegroundColor Yellow
-
+# 5. Set helpful environment variables
+Write-Host "`n[5/6] Setting agent-friendly environment variables..." -ForegroundColor Yellow
 [Environment]::SetEnvironmentVariable("POSH_BASH_CHAINING_NONINTERACTIVE", "1", "User")
-[Environment]::SetEnvironmentVariable("BLACKBOX_AGENT_MODE", "1", "User")
-
 $env:POSH_BASH_CHAINING_NONINTERACTIVE = "1"
-$env:BLACKBOX_AGENT_MODE = "1"
+Write-Host "  Variables set for non-interactive sessions." -ForegroundColor Green
 
-Write-Host "✓ Environment variables set for current session and user." -ForegroundColor Green
+# 6. Prompt generation
+Write-Host "`n[6/6] Checking for task description..." -ForegroundColor Yellow
 
-# 5. Generate task-specific starter prompt (if requested)
-function Generate-AgentStarterPrompt {
-    param(
-        [string]$Task,
-        [string]$SpecFile,
-        [string]$ProjectPath = $ProjectRoot
-    )
-
-    $prompt = @"
-We are starting an autonomous agentic development loop using the template in `agentic_loop_template/`.
-
-**Current Task:**
-$Task
-
-**Instructions for you (the agent):**
-
-1. First, ensure the local Python environment is ready by running:
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
-   ```
-
-2. Activate the virtual environment:
-   ```powershell
-   . .\.venv\Scripts\Activate.ps1
-   ```
-
-3. Read the following files in this exact order:
-   - `docs/agentic_loop/README.md`
-   - `docs/agentic_loop/SYSTEM_PROMPT.md`
-   - `docs/agentic_loop/Agent-Init.md`
-   - `$SpecFile` (this is the single source of truth for the task)
-
-4. Begin working as **ORCHESTRATOR** according to the structure in `SYSTEM_PROMPT.md`.
-
-**Strict Rules:**
-- All git commit messages must be written in natural Russian, as a real human mid/senior developer who has been working on this project for a long time.
-- Never mention AI, LLM, agent, MiniMax, Grok, Claude, or any other model name in commit messages.
-- Always use the local `.venv` for Python commands.
-- Work iteratively with small, well-tested changes.
-- Follow the full Orchestrator → Coder → Tester → Debugger → Reviewer cycle.
-
-Start now by assessing the current state of the repository and the task specification.
-"@
-
-    return $prompt
+$finalTask = $TaskDescription
+if (-not $finalTask) {
+    $finalTask = Get-AutoTaskDescription -MaxLength $MaxTaskLength
 }
 
-# Main prompt generation logic
-if ($GeneratePromptOnly -or $TaskDescription) {
-    Write-Host "`n[5/5] Generating task-specific starter prompt..." -ForegroundColor Cyan
-
-    $generatedPrompt = Generate-AgentStarterPrompt -Task $TaskDescription -SpecFile $TaskSpecFile
+if ($finalTask) {
+    $prompt = Generate-AgentStarterPrompt -Task $finalTask -SpecFile $TaskSpecFile
 
     if ($OutputFile) {
-        $fullOutputPath = if ([System.IO.Path]::IsPathRooted($OutputFile)) { $OutputFile } else { Join-Path $ProjectRoot $OutputFile }
-        Set-Content -Path $fullOutputPath -Value $generatedPrompt -Encoding UTF8
-        Write-Host "✓ Prompt saved to: $fullOutputPath" -ForegroundColor Green
+        $out = if ([System.IO.Path]::IsPathRooted($OutputFile)) { $OutputFile } else { Join-Path $ProjectRoot $OutputFile }
+        Set-Content -Path $out -Value $prompt -Encoding UTF8
+        Write-Host "  Starter prompt saved to: $out" -ForegroundColor Green
     }
 
-    Write-Host "`n=== Generated Starter Prompt for Blackbox ===" -ForegroundColor Yellow
-    Write-Host $generatedPrompt -ForegroundColor Gray
-    Write-Host "=============================================" -ForegroundColor Yellow
-
-    if (-not $GeneratePromptOnly) {
-        Write-Host "`nEnvironment is also prepared. You can now give the prompt above to the agent." -ForegroundColor Green
-    }
-
-    exit 0
+    Write-Host "`n=== Ready-to-use prompt for Blackbox ===" -ForegroundColor Yellow
+    Write-Host $prompt
+    Write-Host "========================================" -ForegroundColor Yellow
+} else {
+    Write-Host "  No task description found automatically." -ForegroundColor DarkYellow
 }
 
-# Normal (non-prompt-only) final instructions
-Write-Host "`n[5/5] Initialization complete." -ForegroundColor Cyan
-
-Write-Host ""
-Write-Host "=== Next Steps ===" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "1. Completely restart the terminal in VSCode (important)." -ForegroundColor White
-Write-Host ""
-Write-Host "2. Copy and paste the following as the FIRST message to Blackbox:" -ForegroundColor White
-Write-Host ""
-Write-Host "────────────────────────────────────────────────────────────" -ForegroundColor DarkGray
-
-@"
-We are using the Agentic Loop Template.
-
-Please read these files in order:
-- docs/agentic_loop/README.md
-- docs/agentic_loop/SYSTEM_PROMPT.md
-- docs/agentic_loop/Agent-Init.md
-
-Then run this command to prepare the environment:
-powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
-
-After that, activate the venv and begin working as ORCHESTRATOR according to the SYSTEM_PROMPT.
-
-Remember: all commit messages must be in natural Russian, written as a real human developer (no mention of AI or agents).
-"@ | Write-Host -ForegroundColor Gray
-
-Write-Host "────────────────────────────────────────────────────────────" -ForegroundColor DarkGray
-Write-Host ""
-Write-Host "You can now start giving tasks to the Blackbox agent." -ForegroundColor Green
-Write-Host ""
-Write-Host "Tip: If the agent gets confused about the environment later, just tell it:" -ForegroundColor DarkGray
-Write-Host "     'Run: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1'" -ForegroundColor DarkGray
-Write-Host ""
-Write-Host "To generate a task-specific starter prompt automatically, run:" -ForegroundColor DarkGray
-Write-Host "     .\agentic_loop_template\Agent-Init.ps1 -TaskDescription 'Your task here' -TaskSpecFile 'TASK_SPECIFICATION.md' -OutputFile 'start_prompt.txt'" -ForegroundColor DarkGray
-Write-Host ""
+Write-Host "`n=== Environment initialization completed successfully ===" -ForegroundColor Green
