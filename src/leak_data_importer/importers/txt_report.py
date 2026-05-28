@@ -22,6 +22,12 @@ from charset_normalizer import from_bytes
 
 from leak_data_importer.importers.base import BaseImporter
 from leak_data_importer.models.person import PersonRecord
+from leak_data_importer.graph import (
+    Entity, ImportGraph, ImportGraphResult,
+    make_person, make_phone, make_email, make_passport, make_snils,
+    make_esia_account, make_address,
+    has_phone, has_email, has_document, owns_account,
+)
 
 
 @dataclass
@@ -268,3 +274,107 @@ class TxtReportImporter(BaseImporter):
                     records.append(rec)
 
         return records, stats
+
+    # ==================== GRAPH / ENTITY MODE (for connection analysis) ====================
+
+    def parse_to_graph(self) -> "ImportGraphResult":
+        """
+        Returns data in graph form (entities + relationships).
+
+        This is the recommended output when your goal is to search for
+        connections between people, phones, documents, accounts, etc.
+        """
+        from leak_data_importer.graph import ImportGraph
+        from leak_data_importer.graph.result import ImportGraphResult
+        from leak_data_importer.graph import (
+            make_person, make_phone, make_email, make_passport,
+            make_snils, make_esia_account,
+            has_phone, has_email, has_document, owns_account,
+        )
+
+        flat_records, stats = self.parse_with_stats()
+
+        graph = ImportGraph()
+        graph.metadata = {
+            "source": str(self.source),
+            "parser": "txt_report.v2.graph",
+        }
+
+        entity_by_key: dict[str, Entity] = {}
+
+        def get_or_create_person(rec: PersonRecord) -> Entity | None:
+            if not rec.full_name:
+                return None
+            # Each record with a distinct name gets its own Person entity (for now).
+            # Later we can add fuzzy deduplication.
+            key = f"person:{rec.source_block_id}:{rec.full_name.lower().replace(' ', '_')[:50]}"
+            if key in entity_by_key:
+                return entity_by_key[key]
+
+            p = make_person(
+                full_name=rec.full_name,
+                birth_date=rec.birth_date,
+                source_ref=rec.source_block_id,
+            )
+            entity_by_key[key] = p
+            graph.entities.append(p)
+            return p
+
+        for rec in flat_records:
+            person = get_or_create_person(rec)
+            if not person:
+                continue
+
+            # Phones
+            for num in rec.phones:
+                key = "phone:" + num
+                if key not in entity_by_key:
+                    ph = make_phone(num, source_ref=rec.source_block_id)
+                    entity_by_key[key] = ph
+                    graph.entities.append(ph)
+                graph.relationships.append(has_phone(person.id, entity_by_key[key].id, source=rec.source_block_id))
+
+            # Emails
+            for addr in rec.emails:
+                key = "email:" + addr.lower()
+                if key not in entity_by_key:
+                    em = make_email(addr, source_ref=rec.source_block_id)
+                    entity_by_key[key] = em
+                    graph.entities.append(em)
+                graph.relationships.append(has_email(person.id, entity_by_key[key].id, source=rec.source_block_id))
+
+            # Documents
+            for pas in rec.passports:
+                key = "passport:" + pas
+                if key not in entity_by_key:
+                    doc = make_passport(pas, source_ref=rec.source_block_id)
+                    entity_by_key[key] = doc
+                    graph.entities.append(doc)
+                graph.relationships.append(has_document(person.id, entity_by_key[key].id, "passport", source=rec.source_block_id))
+
+            for sn in rec.snils:
+                key = "snils:" + sn
+                if key not in entity_by_key:
+                    doc = make_snils(sn, source_ref=rec.source_block_id)
+                    entity_by_key[key] = doc
+                    graph.entities.append(doc)
+                graph.relationships.append(has_document(person.id, entity_by_key[key].id, "snils", source=rec.source_block_id))
+
+            if rec.esia_id:
+                key = "esia:" + rec.esia_id
+                if key not in entity_by_key:
+                    acc = make_esia_account(rec.esia_id, source_ref=rec.source_block_id)
+                    entity_by_key[key] = acc
+                    graph.entities.append(acc)
+                graph.relationships.append(owns_account(person.id, entity_by_key[key].id, "esia", source=rec.source_block_id))
+
+        result = ImportGraphResult(
+            graph=graph,
+            flat_records=[r.to_dict() for r in flat_records],
+            stats={
+                "parser_stats": stats.as_dict(),
+                "entities": len(graph.entities),
+                "relationships": len(graph.relationships),
+            },
+        )
+        return result
