@@ -92,3 +92,11 @@ data/processed/*.parquet
 secrets/
 credentials.json
 config/local.yaml
+
+# Agentic Loop generated working files (these are created by the agent during runs)
+PROJECT_CONTEXT.md
+SPRINTPLAN.md
+starter_prompt*.md
+docs/agentic_loop/starter_prompt*.md
+docs/agentic_loop/PROJECT_CONTEXT.md
+docs/agentic_loop/SPRINTPLAN.md
