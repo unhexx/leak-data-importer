@@ -100,3 +100,11 @@ starter_prompt*.md
 docs/agentic_loop/starter_prompt*.md
 docs/agentic_loop/PROJECT_CONTEXT.md
 docs/agentic_loop/SPRINTPLAN.md
+
+# Hidden context directories and debug/analysis outputs from development
+.context/
+data/analysis/
+*.debug.txt
+*debug*.txt
+*report*.txt
+rich_block*.txt
