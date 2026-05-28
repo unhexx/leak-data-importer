@@ -75,6 +75,7 @@ class TxtReportImporter(BaseImporter):
     CONF_SCORE = re.compile(r"\((\d+)\s*/\s*(\d+)\)")
     CONF_X = re.compile(r"\(x\s*(\d+)\)", re.IGNORECASE)
     DATE_RE = re.compile(r"(\d{2})\.(\d{2})\.(\d{4})")
+    SOURCE_TAG_RE = re.compile(r"\[([^\]]+?)\s*[xх]\s*\d+\]", re.IGNORECASE)  # supports both Latin and Cyrillic 'x'
 
     def __init__(self, source: Path | str, **options):
         super().__init__(source, **options)
@@ -205,6 +206,27 @@ class TxtReportImporter(BaseImporter):
         for val in self._get_values_for_label(block, "car_model"):
             info["model"] = val.strip()
         return info
+
+    def _detect_data_source(self, block: str) -> Optional[str]:
+        """Extract source tag from block header. Looks for patterns like [Что-то x3]."""
+        # Look in first 300 chars of the block
+        head = block[:300]
+        
+        # Try the strict regex first
+        m = self.SOURCE_TAG_RE.search(head)
+        if m:
+            return m.group(1).strip()
+        
+        # Fallback: any [text] at the beginning of a line in the header area
+        for line in head.splitlines()[:4]:
+            line = line.strip()
+            if line.startswith("[") and "]" in line[:40]:
+                tag = line[1:line.find("]")].strip()
+                # Clean common suffixes like " x3"
+                tag = re.sub(r"\s*x\s*\d+$", "", tag, flags=re.I).strip()
+                if tag and len(tag) > 1:
+                    return tag
+        return None
 
     def _promote_from_raw_data(self, rec: PersonRecord):
         """Aggressively classify and move valuable fields out of raw_data into structured slots.
@@ -388,11 +410,11 @@ class TxtReportImporter(BaseImporter):
                 fields[key].append(val)
         return dict(fields)
 
-    def _parse_block(self, block: str, source_file: str, block_id: str) -> Optional[PersonRecord]:
+    def _parse_block(self, block: str, source_file: str, block_id: str, data_source: Optional[str] = None) -> Optional[PersonRecord]:
         if len(block.strip()) < self.min_block_len:
             return None
 
-        rec = PersonRecord(source_file=source_file, source_block_id=block_id)
+        rec = PersonRecord(source_file=source_file, source_block_id=block_id, data_source=data_source)
 
         # Capture absolutely everything first (lossless)
         rec.raw_data = self._greedy_extract_fields(block)
@@ -422,7 +444,8 @@ class TxtReportImporter(BaseImporter):
             text = self._read_text(fp)
             blocks = re.split(r"\n[═─=+\-]{5,}\n", text)
             for idx, block in enumerate(blocks):
-                rec = self._parse_block(block, str(fp), f"{fp.name}:{idx}")
+                source_tag = self._detect_data_source(block)
+                rec = self._parse_block(block, str(fp), f"{fp.name}:{idx}", data_source=source_tag)
                 if rec:
                     yield rec
 
@@ -440,7 +463,8 @@ class TxtReportImporter(BaseImporter):
             stats.total_blocks += len(blocks)
 
             for idx, block in enumerate(blocks):
-                rec = self._parse_block(block, str(fp), f"{fp.name}:{idx}")
+                source_tag = self._detect_data_source(block)
+                rec = self._parse_block(block, str(fp), f"{fp.name}:{idx}", data_source=source_tag)
                 if rec:
                     stats.records_extracted += 1
                     key = rec.parsing_strategy or "unknown"
@@ -492,6 +516,8 @@ class TxtReportImporter(BaseImporter):
                 birth_date=rec.birth_date,
                 source_ref=rec.source_block_id,
             )
+            if rec.data_source:
+                p.properties["data_source"] = rec.data_source
             # Attach all raw captured fields so nothing is lost
             if rec.raw_data:
                 p.properties.setdefault("raw_fields", {}).update(rec.raw_data)

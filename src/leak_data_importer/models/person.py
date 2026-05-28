@@ -38,6 +38,7 @@ class PersonRecord:
     # Provenance & quality
     source_file: Optional[str] = None
     source_block_id: Optional[str] = None
+    data_source: Optional[str] = None           # e.g. "Количество", "Аэропорт-????", "Основной" — from [Tag xN] headers
     confidence: Optional[float] = None          # aggregated from (NN/NN) or (xNN) markers
     parsing_strategy: Optional[str] = None      # which strategy extracted this record
 
