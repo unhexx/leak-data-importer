@@ -1,27 +1,28 @@
-# TOOLS REGISTRY — Реестр инструментов агентного цикла
+# TOOLS REGISTRY — Tools for the Agentic Development Loop
 
-> Все инструменты, доступные агенту в рамках цикла.  
-> Расширяйте этот файл при добавлении новых инструментов в локальный runner.
+> This registry defines all tools available to the agent during the loop.
+> Extend this file when adding new capabilities to your local runner.
 
 ---
 
-## Формат вызова инструмента
+## Tool Call Format
 
-Все вызовы производятся через JSON-объект, испускаемый моделью и интерпретируемый локальным агентом:
+The model emits a JSON object. Your local runner executes it and returns the result.
 
+**Request (from model):**
 ```json
 {
-  "tool": "<имя инструмента>",
-  "<параметр1>": "<значение1>",
-  "<параметр2>": "<значение2>",
-  "purpose": "<краткое описание цели вызова>"
+  "tool": "tool_name",
+  "param1": "value1",
+  "param2": "value2",
+  "purpose": "Short explanation why this tool is being called"
 }
 ```
 
-Локальный агент возвращает:
+**Response (from your runner):**
 ```json
 {
-  "tool": "<имя инструмента>",
+  "tool": "tool_name",
   "exit_code": 0,
   "stdout": "...",
   "stderr": "...",
@@ -29,245 +30,232 @@
 }
 ```
 
+**Important for Blackbox / non-interactive usage:**
+- Always return both `stdout` and `stderr`.
+- Include `elapsed_ms` when possible.
+- Never swallow errors silently.
+
 ---
 
-## Базовые инструменты
+## Core Tools
 
-### `powershell` — Выполнение команды в Windows PowerShell
+### `powershell` — Execute commands in Windows PowerShell
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| `command` | string | да | Команда PowerShell |
-| `working_dir` | string | нет | Рабочая директория (по умолчанию: repo root) |
-| `timeout_sec` | int | нет | Таймаут в секундах (по умолчанию: 60) |
+| Field         | Type   | Required | Description |
+|---------------|--------|----------|-------------|
+| `command`     | string | yes      | PowerShell command to execute |
+| `working_dir` | string | no       | Working directory (default: project root) |
+| `timeout_sec` | int    | no       | Timeout in seconds (default: 120) |
+
+**Best Practice Examples:**
 
 ```json
 {
   "tool": "powershell",
-  "command": "Get-ChildItem . -Recurse -Depth 2",
-  "purpose": "показать структуру репозитория"
+  "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\setup_env.ps1",
+  "purpose": "Bootstrap Python venv and install dependencies (MANDATORY at start of cycle)"
 }
 ```
 
-**Правила использования:**
-- Всегда использовать Windows path-разделители (`\`)
-- Для активации venv: `.\venv\Scripts\Activate.ps1`
-- Для запуска Python внутри venv: `.\venv\Scripts\python.exe`
-- PowerShell-семантика: `$env:VAR`, `Get-Content`, `Set-Content`, etc.
+```json
+{
+  "tool": "powershell",
+  "command": "git status --porcelain",
+  "purpose": "Check for uncommitted changes before major implementation"
+}
+```
+
+**Rules:**
+- Always use Windows path separators (`\`)
+- Activate venv explicitly: `.\.venv\Scripts\Activate.ps1`
+- Run Python via: `.\.venv\Scripts\python.exe`
+- Prefer full commands over interactive mode
 
 ---
 
-### `read_file` — Чтение файла
+### `read_file` — Read file contents
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| `path` | string | да | Относительный путь от repo root |
-| `encoding` | string | нет | Кодировка (по умолчанию: utf-8) |
-| `lines_from` | int | нет | Начальная строка (1-based) |
-| `lines_to` | int | нет | Конечная строка |
+| Field       | Type   | Required | Description |
+|-------------|--------|----------|-------------|
+| `path`      | string | yes      | Relative path from project root |
+| `encoding`  | string | no       | Default: utf-8 |
+| `lines_from`| int    | no       | Start line (1-based) |
+| `lines_to`  | int    | no       | End line |
 
+**Best Practice:**
 ```json
 {
   "tool": "read_file",
-  "path": "PROJECT_CONTEXT.md",
-  "purpose": "прочитать текущий контекст проекта"
+  "path": "src/leak_data_importer/importers/txt_report.py",
+  "lines_from": 480,
+  "lines_to": 520,
+  "purpose": "Review current implementation of parse_to_graph before extending entity types"
 }
 ```
 
 ---
 
-### `write_file` — Запись файла (перезапись)
+### `write_file` — Write / overwrite a file
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| `path` | string | да | Путь от repo root |
-| `content` | string | да | Содержимое файла |
-| `encoding` | string | нет | Кодировка (по умолчанию: utf-8) |
+| Field     | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| `path`    | string | yes      | Relative path from project root |
+| `content` | string | yes      | Full file content |
+| `encoding`| string | no       | Default: utf-8 |
 
+**Best Practice:**
 ```json
 {
   "tool": "write_file",
-  "path": "src/parser.py",
-  "content": "# ...",
-  "purpose": "создать основной модуль парсера"
+  "path": "src/leak_data_importer/graph/factories.py",
+  "content": "# full file content here...",
+  "purpose": "Add make_vehicle and make_sim_card factories as per new entity model"
 }
 ```
 
 ---
 
-### `append_file` — Дозапись в файл
+### `append_file` — Append content to a file
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| `path` | string | да | Путь от repo root |
-| `content` | string | да | Текст для добавления в конец |
+| Field     | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| `path`    | string | yes      | Relative path |
+| `content` | string | yes      | Text to append |
 
+**Best Practice (for logs):**
 ```json
 {
   "tool": "append_file",
   "path": "PROJECT_CONTEXT.md",
-  "content": "\n## Цикл 1 — ...",
-  "purpose": "обновить лог саморазвития"
+  "content": "\n\n## Cycle 2 — 2026-05-28\n\n**Lessons learned:**\n- Always run setup_env at the beginning of a cycle\n- Entity resolution needs fuzzy matching across files",
+  "purpose": "Record self-improvement insights from current cycle"
 }
 ```
 
 ---
 
-### `list_dir` — Листинг директории
+### `list_dir` — List directory contents
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| `path` | string | да | Путь от repo root |
-| `recursive` | bool | нет | Рекурсивный листинг (по умолчанию: false) |
-| `depth` | int | нет | Глубина рекурсии (по умолчанию: 1) |
+| Field       | Type | Required | Description |
+|-------------|------|----------|-------------|
+| `path`      | string | yes    | Relative path |
+| `recursive` | bool   | no     | Default: false |
+| `depth`     | int    | no     | Max recursion depth (default: 1) |
 
+**Best Practice:**
 ```json
 {
   "tool": "list_dir",
-  "path": ".",
+  "path": "src/leak_data_importer",
   "recursive": true,
   "depth": 2,
-  "purpose": "проверить структуру проекта"
+  "purpose": "Understand current module structure before planning new importers"
 }
 ```
 
 ---
 
-### `git_status` — Статус git-репозитория
+### `search_replace` — Precise search & replace in a file
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| _(нет обязательных)_ | | | |
+| Field       | Type   | Required | Description |
+|-------------|--------|----------|-------------|
+| `path`      | string | yes      | File to modify |
+| `search`    | string | yes      | Exact text or regex to find |
+| `replace`   | string | yes      | Replacement text |
+| `use_regex` | bool   | no       | Default: false |
 
+**Best Practice (preferred over write_file for small changes):**
+```json
+{
+  "tool": "search_replace",
+  "path": "src/leak_data_importer/importers/txt_report.py",
+  "search": "from leak_data_importer.graph import (",
+  "replace": "from leak_data_importer.graph import (\n    make_vehicle,\n    registered_at,",
+  "purpose": "Add missing graph factories required for parse_to_graph"
+}
+```
+
+---
+
+### `git_status` — Get repository status
+
+No required parameters.
+
+**Best Practice:**
 ```json
 {
   "tool": "git_status",
-  "purpose": "проверить текущее состояние репозитория"
+  "purpose": "Check for uncommitted changes before creating a new feature branch"
 }
 ```
 
-Возвращает: текущую ветку, список изменённых файлов, staged/unstaged статус.
-
 ---
 
-### `git_commit` — Зафиксировать изменения
+### `git_commit` — Create a commit
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| `message` | string | да | Сообщение коммита (на русском, человеческое) |
-| `add_all` | bool | нет | `git add -A` перед коммитом (по умолчанию: true) |
-| `files` | array | нет | Конкретные файлы для `git add` |
+| Field     | Type    | Required | Description |
+|-----------|---------|----------|-------------|
+| `message` | string  | yes      | Commit message **in natural Russian**, written as a real developer |
+| `add_all` | boolean | no       | Run `git add -A` first (default: true) |
+| `files`   | array   | no       | Specific files to add |
+
+**Strict Rule:**
+Never use words like: AI, LLM, agent, MiniMax, Grok, Claude, нейросеть, "as an assistant", "автоматически" in the commit message.
+
+**Best Practice Examples:**
+```json
+{
+  "tool": "git_commit",
+  "message": "добавил поддержку make_vehicle и make_address в графовом режиме",
+  "add_all": true,
+  "purpose": "Зафиксировать расширение графовой модели"
+}
+```
 
 ```json
 {
   "tool": "git_commit",
-  "message": "Добавил модели данных для обработки отчётов",
-  "add_all": true,
-  "purpose": "зафиксировать реализацию моделей"
+  "message": "починил нормализацию телефонов и добавил тесты на edge-кейсы с +7 и 8",
+  "purpose": "Улучшить качество парсинга реальных отчётов"
 }
 ```
 
-**Запрещено в message:** AI, LLM, agent, MiniMax, нейросеть, агентный цикл, автогенерация, автоматически.
-
 ---
 
-### `run_tests` — Запуск тестов
+### `run_tests` — Run tests
 
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| `test_path` | string | нет | Путь к тестам (по умолчанию: `tests/`) |
-| `coverage` | bool | нет | Включить coverage (по умолчанию: true) |
-| `verbose` | bool | нет | Подробный вывод (по умолчанию: true) |
-| `fail_fast` | bool | нет | Остановиться на первом провале (по умолчанию: false) |
-| `markers` | string | нет | pytest markers filter, например `"unit"` |
+| Field       | Type    | Required | Description |
+|-------------|---------|----------|-------------|
+| `test_path` | string  | no       | Path to tests (default: `tests/`) |
+| `coverage`  | boolean | no       | Collect coverage (default: true) |
+| `verbose`   | boolean | no       | Verbose output (default: true) |
 
+**Best Practice:**
 ```json
 {
   "tool": "run_tests",
   "test_path": "tests/",
   "coverage": true,
-  "verbose": true,
-  "purpose": "запустить полный тест-сьют с покрытием"
-}
-```
-
-Возвращает: количество тестов (passed/failed/error), coverage %, список провалившихся тестов.
-
----
-
-### `search_replace` — Поиск и замена в файле
-
-| Поле | Тип | Обязательно | Описание |
-|------|-----|-------------|----------|
-| `path` | string | да | Путь к файлу |
-| `pattern` | string | да | Регулярное выражение для поиска |
-| `replacement` | string | да | Строка замены |
-| `flags` | string | нет | Флаги regex: `i` (ignorecase), `m` (multiline), `s` (dotall) |
-| `count` | int | нет | Максимальное число замен (по умолчанию: все) |
-
-```json
-{
-  "tool": "search_replace",
-  "path": "src/parser.py",
-  "pattern": "TODO: implement normalization",
-  "replacement": "return normalize_field(raw_value)",
-  "purpose": "реализовать нормализацию поля"
+  "purpose": "Verify that recent changes in txt_report.py did not break existing functionality"
 }
 ```
 
 ---
 
-## Расширенные инструменты (опциональные)
+## Best Practices for Tool Usage (All Roles)
 
-Добавляйте по необходимости для конкретного проекта:
-
-### `run_migration` — Запуск Alembic-миграций
-
-```json
-{
-  "tool": "powershell",
-  "command": ".\\venv\\Scripts\\python.exe -m alembic upgrade head",
-  "purpose": "применить миграции БД"
-}
-```
-
-### `check_db_connection` — Проверка подключения к БД
-
-```json
-{
-  "tool": "powershell",
-  "command": ".\\venv\\Scripts\\python.exe scripts\\check_db.py",
-  "purpose": "проверить соединение с PostgreSQL"
-}
-```
-
-### `lint` — Проверка стиля кода
-
-```json
-{
-  "tool": "powershell",
-  "command": ".\\venv\\Scripts\\python.exe -m ruff check src/ tests/",
-  "purpose": "проверить стиль кода"
-}
-```
-
-### `type_check` — Статическая типизация
-
-```json
-{
-  "tool": "powershell",
-  "command": ".\\venv\\Scripts\\python.exe -m mypy src/ --strict",
-  "purpose": "проверить типы"
-}
-```
+- Always include a clear `"purpose"` — it helps the next role understand your intent.
+- Prefer `search_replace` over `write_file` when making targeted changes.
+- After any significant change, run `git_status` before committing.
+- When debugging, use `run_tests` frequently instead of manual verification.
+- Never commit without a meaningful Russian commit message.
 
 ---
 
-## Правила использования инструментов
+## Extending the Registry
 
-1. **Не более 3 tool calls подряд** без шага REFLECT.
-2. Каждый вызов должен иметь поле `"purpose"` с кратким описанием цели.
-3. При получении `exit_code != 0` — анализировать stderr, не игнорировать.
-4. При timeout — логировать в `issues_found`, уменьшить область команды.
-5. `write_file` с большим содержимым — разбить на логические блоки, коммитить по модулям.
-6. Никогда не выполнять деструктивные операции без явного обоснования в `purpose`.
+When adding a new tool:
+1. Add it to this file with description, parameters, and at least 2 good examples.
+2. Implement it in your local runner.
+3. Update `SYSTEM_PROMPT.md` (section "Available Tools").
+4. Update `AGENT_ROLES.md` if the new tool is especially important for certain roles.

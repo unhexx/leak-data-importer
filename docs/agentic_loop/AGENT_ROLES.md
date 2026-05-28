@@ -72,6 +72,27 @@ After implementation:
 - Hand off to Tester
 ```
 
+**Best Practice Example (Coder):**
+```
+PLAN:
+1. Read current implementation of TxtReportImporter.parse_to_graph()
+2. Identify missing entity factories
+3. Implement make_vehicle + registered_at support
+4. Add basic tests for new entities
+5. Commit
+
+ACT:
+- Read the relevant section of txt_report.py
+- Use search_replace to add missing imports
+- Implement the factories in graph/factories.py
+- Write 2-3 unit tests
+
+REFLECT:
+- Did I break any existing tests?
+- Are the new entities properly connected via relationships?
+- Commit message example: "добавил поддержку vehicle и registered_at в графовом режиме парсера"
+```
+
 ## ROLE 3: TESTER
 
 ```
@@ -93,6 +114,25 @@ After testing:
 - Run the environment bootstrap if needed
 - Commit with a natural Russian developer commit message
 - Hand off to Debugger
+```
+
+**Best Practice Example (Tester):**
+```
+PLAN:
+1. Run full test suite with coverage before touching anything
+2. Identify modules with coverage < 70%
+3. Add tests for new normalization logic and graph factories
+4. Check for flaky tests on real report files
+
+ACT:
+- Run: .\agentic_loop_template\Agent-Init.ps1 (to ensure clean env)
+- Run: python -m pytest tests/ -v --cov=src --cov-report=term-missing
+- Add 4-5 new tests for edge cases in normalization.py
+
+REFLECT:
+- Coverage increased from 61% to 78%
+- Found 2 flaky tests related to encoding
+- Commit message: "добавил тесты на нормализацию телефонов и обработку кодировок, поднял покрытие до 78%"
 ```
 
 ## ROLE 4: DEBUGGER
@@ -118,6 +158,27 @@ After debugging:
 - Hand off to Reviewer
 ```
 
+**Best Practice Example (Debugger):**
+```
+PLAN:
+1. Reproduce the failing test locally
+2. Add temporary logging to understand the data flow
+3. Identify root cause (in this case — wrong argument order in registered_at)
+4. Fix + clean up debug logging
+5. Re-run full test suite
+
+ACT:
+- Run specific failing test with -s to see output
+- Use search_replace to fix the call
+- Remove debug prints
+- Run: python -m pytest tests/test_parser.py -q
+
+REFLECT:
+- Root cause was passing `source=` as positional argument instead of keyword
+- Test now passes consistently
+- Commit: "починил вызов registered_at — исправил порядок аргументов, все тесты зелёные"
+```
+
 ## ROLE 5: REVIEWER
 
 ```
@@ -137,4 +198,25 @@ Focus:
 - Enforce Russian human-developer commit style
 
 If status is not DONE, always explain exactly what must be fixed before the next cycle.
+```
+
+**Best Practice Example (Reviewer):**
+```
+PLAN:
+1. Re-read TASK_SPECIFICATION.md (especially acceptance criteria for Phase 2)
+2. Review all changes made in this cycle
+3. Run full test suite + coverage one more time
+4. Check commit messages for compliance with rules
+5. Decide on status
+
+ACT:
+- Carefully compare implementation vs spec
+- Check that no AI-sounding language appeared in commits
+- Update lessons_learned in PROJECT_CONTEXT.md
+
+REFLECT:
+- 3 out of 4 acceptance criteria are met
+- One edge case with malformed phone numbers is still not handled
+- Decision: NOT DONE → return to Orchestrator with clear feedback
+- Commit: "добавил уроки цикла 2 в PROJECT_CONTEXT.md — выявлены проблемы с malformed телефонами"
 ```
