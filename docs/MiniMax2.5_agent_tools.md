@@ -63,6 +63,23 @@ Example:
 
 > Для использования bash-операторов (`&&`, `||`, `|&`, `&>`) в обычной Windows PowerShell смотри `posh-bash-chaining/` — там есть удобный установщик.
 
+### Запуск Agentic Loop через Blackbox + MiniMax2.5
+
+Для длительной автономной работы рекомендуется использовать улучшенный шаблон из `docs/agentic_loop/`.
+
+**Быстрый старт:**
+
+1. Выполни один раз:
+   ```powershell
+   .\agentic_loop_template\Agent-Init.ps1
+   ```
+
+2. В настройках Blackbox добавь в Custom Instructions блок из `docs/agentic_loop/Agent-Init.md`.
+
+3. В качестве первого сообщения используй промпт, сгенерированный скриптом (или текст из `Agent-Init.md`).
+
+Шаблон специально адаптирован под неинтерактивные сессии Blackbox и модель MiniMax2.5. Он автоматически подключает локальное Python-окружение и требует писать коммиты на русском от лица разработчика.
+
 ### 4. Project-Specific High-Level Tools (Recommended to Implement)
 
 The agent should eventually be able to call these via CLI or Python:

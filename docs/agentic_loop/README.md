@@ -16,23 +16,30 @@ The agent cycles through roles (Orchestrator → Coder → Tester → Debugger �
 ```
 agentic_loop_template/
 ├── README.md
-├── SYSTEM_PROMPT.md              # Main system prompt (fill {{placeholders}})
-├── AGENT_ROLES.md                # Detailed instructions per role
-├── HANDOFF_SCHEMA.md             # JSON handoff contract
-├── TOOLS_REGISTRY.md             # Available tools
-├── PROJECT_CONTEXT_TEMPLATE.md   # Template for PROJECT_CONTEXT.md
-├── SPRINTPLAN_TEMPLATE.md        # Template for SPRINTPLAN.md
-├── setup_env.ps1                 # Robust venv + requirements bootstrap (call at start of cycles)
-└── Profile-Bootstrap.ps1         # (optional) PowerShell profile helper for non-interactive sessions
+├── SYSTEM_PROMPT.md
+├── AGENT_ROLES.md
+├── HANDOFF_SCHEMA.md
+├── TOOLS_REGISTRY.md
+├── PROJECT_CONTEXT_TEMPLATE.md
+├── SPRINTPLAN_TEMPLATE.md
+├── setup_env.ps1                 # Основной скрипт подготовки Python-окружения
+├── Agent-Init.ps1                # Скрипт инициализации специально для Blackbox + VSCode
+├── Agent-Init.md                 # Подробная инструкция запуска через Blackbox + MiniMax2.5
+└── Profile-Bootstrap.ps1
 ```
 
-## Quick Start
+## Quick Start (Blackbox + MiniMax2.5 в VSCode)
 
-1. Copy the template into your project root.
-2. Fill all `{{ ... }}` placeholders in `SYSTEM_PROMPT.md`.
-3. Create `TASK_SPECIFICATION.md` (the single source of truth).
-4. Run `./agentic_loop_template/setup_env.ps1` (or let the Orchestrator call it).
-5. Start the loop with the content of `SYSTEM_PROMPT.md` as the system prompt for MiniMax2.5.
+1. Выполни:
+   ```powershell
+   .\agentic_loop_template\Agent-Init.ps1
+   ```
+
+2. Добавь инструкции из `Agent-Init.md` в Custom Instructions Blackbox.
+
+3. Отправь агенту промпт из `Agent-Init.md` (или сгенерированный скриптом).
+
+Подробности — в `Agent-Init.md`.
 
 ## Environment Management (Critical)
 

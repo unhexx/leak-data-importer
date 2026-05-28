@@ -80,13 +80,19 @@ This project does **not** distribute or host any leaked data. Users are fully re
 
 ## Autonomous Agentic Development
 
-For long autonomous development loops with MiniMax2.5 (or similar models), the project includes an improved **Agentic Loop Template**:
+Для длительной автономной разработки рекомендуется использовать улучшенный **Agentic Loop Template**:
 
-- Location: `docs/agentic_loop/`
-- Full standalone archive: `agentic_loop_template_v2.zip` (at repo root)
-- Key features: Mandatory local Python venv + requirements management, English instructions, strict Russian human-developer commit style (no AI mentions), non-interactive agent friendly.
+- Расположение: `docs/agentic_loop/`
+- Полный архив для старта новых проектов: `agentic_loop_template_v2.zip`
+- Особенности: принудительное использование локального `.venv`, английские инструкции + требование писать коммиты на русском от лица разработчика, хорошая совместимость с неинтерактивными агентами (Blackbox и др.)
 
-See `docs/agentic_loop/README.md` for details.
+**Быстрый старт с Blackbox + MiniMax2.5 в VSCode:**
+
+```powershell
+.\agentic_loop_template\Agent-Init.ps1
+```
+
+Подробная инструкция — в `docs/agentic_loop/Agent-Init.md`.
 
 ## Windows helpers
 
