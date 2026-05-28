@@ -42,6 +42,9 @@ graph = [
     "pyvis>=0.3",         # For visual graph rendering
     "streamlit>=1.35",    # For the import control UI
 ]
+db = [
+    "psycopg2-binary>=2.9",   # PostgreSQL driver for DB mapping
+]
 
 [project.scripts]
 leak-data-importer = "leak_data_importer.cli:main"

@@ -192,58 +192,89 @@ class DossierParser:
 
     def _parse_profile_section(self, content: str) -> dict:
         """
-        Parse ПРОФИЛЬ + БАНКИ sections.
-        Extracts ESIA/Gosuslugi data, bank accounts, and other profile info.
+        Deep parser for ПРОФИЛЬ + БАНКИ sections.
+        Focuses on structured extraction from Gosuslugi/ESIA and banking data.
         """
         result: dict[str, Any] = {
-            "esia_data": {},
+            "esia": {
+                "registration_date": None,
+                "last_login": None,
+                "account_status": None,
+                "linked_phones": [],
+                "linked_emails": [],
+            },
             "banks": [],
-            "other_profile": {},
-            "raw": content[:1500] if len(content) > 1500 else content
+            "other": {},
+            "raw_sample": content[:2000] if len(content) > 2000 else content,
         }
 
         if not content.strip():
             return result
 
-        current_bank = None
         lines = content.splitlines()
+        current_bank = None
 
-        bank_header_re = re.compile(r"^\s*(Банк|Банковская карта|Счет)\s*[:：]?\s*(.+?)$", re.IGNORECASE)
+        bank_header_re = re.compile(r"^\s*(Банк|Банковская карта|Счет|Карта)\s*[:：]?\s*(.+?)$", re.IGNORECASE)
+        esia_date_re = re.compile(r"(дата регистрации|дата создания|последний вход|дата авторизации)", re.IGNORECASE)
 
         for line in lines:
             stripped = line.strip()
             if not stripped or stripped.startswith("─"):
                 continue
 
-            # Bank section
+            # === BANK PARSING ===
             bank_match = bank_header_re.match(stripped)
             if bank_match:
                 if current_bank:
                     result["banks"].append(current_bank)
                 current_bank = {
-                    "bank_name": bank_match.group(2).strip(),
+                    "bank": bank_match.group(2).strip(),
+                    "card_number_masked": None,
+                    "account": None,
+                    "open_date": None,
                     "details": {}
                 }
                 continue
 
             if current_bank and ":" in stripped:
                 key, _, val = stripped.partition(":")
-                current_bank["details"][key.strip()] = val.strip()
+                key = key.strip()
+                val = val.strip()
+                key_lower = key.lower()
+
+                current_bank["details"][key] = val
+
+                if "карта" in key_lower or "номер карты" in key_lower:
+                    current_bank["card_number_masked"] = val
+                elif "счет" in key_lower:
+                    current_bank["account"] = val
+                elif "дата открытия" in key_lower or "дата выпуска" in key_lower:
+                    current_bank["open_date"] = normalize_date(val)
                 continue
 
-            # ESIA / Gosuslugi / Profile fields
+            # === ESIA / PROFILE FIELDS ===
             if ":" in stripped:
                 key, _, val = stripped.partition(":")
                 key = key.strip()
                 val = val.strip()
-
                 key_lower = key.lower()
-                if any(x in key_lower for x in ["есия", "госуслуги", "esia", "учетная запись"]):
-                    result["esia_data"][key] = val
-                elif any(x in key_lower for x in ["инн", "снилс", "телефон", "email", "дата рождения"]):
-                    result["other_profile"][key] = val
+
+                if esia_date_re.search(key):
+                    if "регистр" in key_lower or "создан" in key_lower:
+                        result["esia"]["registration_date"] = normalize_date(val)
+                    elif "последн" in key_lower or "авториз" in key_lower:
+                        result["esia"]["last_login"] = normalize_datetime(val)
+                    result["esia"][key] = val
+                elif "есия" in key_lower or "госуслуги" in key_lower or "учетная запись" in key_lower:
+                    result["esia"][key] = val
+                elif "телефон" in key_lower:
+                    norm = normalize_phone(val)
+                    if norm:
+                        result["esia"]["linked_phones"].append(norm)
+                elif "email" in key_lower or "почта" in key_lower:
+                    result["esia"]["linked_emails"].append(val.lower())
                 else:
-                    result["other_profile"][key] = val
+                    result["other"][key] = val
 
         if current_bank:
             result["banks"].append(current_bank)
