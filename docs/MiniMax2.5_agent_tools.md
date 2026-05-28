@@ -2,6 +2,8 @@
 
 This document describes the **tools** a local autonomous development agent (such as MiniMax2.5 or similar) can reliably use while working on the `leak-data-importer` project.
 
+> **Recommended:** For long-running autonomous development, use the improved Agentic Loop Template located at `docs/agentic_loop/`. It enforces local Python venv usage, English instructions + Russian developer-style commits, and is tuned for MiniMax2.5 in non-interactive agent environments.
+
 The goal is to give the agent a clear, stable interface so it can develop features, debug, test, and ship code without constant human intervention.
 
 ---
