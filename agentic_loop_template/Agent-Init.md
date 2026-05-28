@@ -156,6 +156,19 @@ The generated prompt will include:
 - Reminder about Russian developer-style commits
 - Instruction to start as ORCHESTRATOR
 
+## Robust Virtual Environment Handling (New in v2)
+
+`Agent-Init.ps1` now has significantly improved reliability for the Python virtual environment:
+
+- It automatically detects if `.venv` is missing, broken, or corrupted.
+- If problems are detected, it **fully removes and recreates** the virtual environment.
+- It verifies that the Python inside `.venv` is actually working before proceeding.
+- Clear messages are shown at each step (e.g. "Existing .venv is broken. Recreating...", "Virtual environment created successfully").
+
+This greatly reduces issues when the agent or you run the script multiple times, or after pulling changes that affect dependencies.
+
+You no longer need to manually delete `.venv` when something goes wrong — the script handles it.
+
 ## Quick One-Liner for the Agent (when it gets confused)
 
 If the agent loses the environment, tell it:
