@@ -123,23 +123,29 @@ These tell the tools to behave safely when output is being captured by an agent.
 
 ---
 
-## Generating a Task-Specific Starter Prompt
+## Generating a Task-Specific Starter Prompt (Recommended)
 
-Instead of giving a generic message, you can make the script generate a ready-to-paste prompt tailored to your exact task:
+The easiest and recommended way is to let the script **auto-detect** the task:
+
+```powershell
+.\agentic_loop_template\Agent-Init.ps1 -OutputFile "start_prompt.txt"
+```
+
+The script will automatically search for the task description in this priority order:
+1. `TASK_SPECIFICATION.md` (the official spec)
+2. `TODO.md`
+3. `docs/TASK_SPECIFICATION.md`
+
+It reads the beginning of the file (up to ~2800 characters) and uses it to build a rich, contextual prompt for the agent.
+
+### Manual mode (if you want full control)
 
 ```powershell
 .\agentic_loop_template\Agent-Init.ps1 `
-    -TaskDescription "Реализовать улучшенный парсер dossier-отчётов с поддержкой fuzzy linking и экспортом в Neo4j" `
+    -TaskDescription "Реализовать улучшенный парсер dossier-отчётов..." `
     -TaskSpecFile "TASK_SPECIFICATION.md" `
-    -OutputFile "agent_start_prompt.txt"
+    -OutputFile "start_prompt.txt"
 ```
-
-This will:
-- Prepare the environment as usual
-- Generate a high-quality, context-rich prompt containing your task description
-- Save it to `agent_start_prompt.txt` (ready to copy into Blackbox)
-
-You can then open `agent_start_prompt.txt` and send its content as the first message to the agent.
 
 ### Example of Generated Prompt Content
 
