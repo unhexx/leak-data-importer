@@ -78,6 +78,16 @@ MIT License — see [LICENSE](LICENSE) file.
 
 This project does **not** distribute or host any leaked data. Users are fully responsible for the legality and ethics of the data they process with this tool.
 
+## Autonomous Agentic Development
+
+For long autonomous development loops with MiniMax2.5 (or similar models), the project includes an improved **Agentic Loop Template**:
+
+- Location: `docs/agentic_loop/`
+- Full standalone archive: `agentic_loop_template_v2.zip` (at repo root)
+- Key features: Mandatory local Python venv + requirements management, English instructions, strict Russian human-developer commit style (no AI mentions), non-interactive agent friendly.
+
+See `docs/agentic_loop/README.md` for details.
+
 ## Windows helpers
 
 Для комфортной работы в классической Windows PowerShell в репозитории есть инструмент:
