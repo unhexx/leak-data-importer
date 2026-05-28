@@ -174,87 +174,163 @@ class DossierParser:
 
         person = ParsedPerson(fio=fio, birth_date=birth_date)
 
-        # Try to extract some main identifiers early from profile
+        # Extract from raw profile text (legacy)
         for line in profile_text.splitlines():
             if ":" in line:
                 k, _, v = line.partition(":")
                 k = k.strip().lower()
                 v = v.strip()
-                if "тел" in k:
+                if "тел" in k or "мобильн" in k:
                     p = normalize_phone(v)
                     if p: person.phones.append(p)
                 elif "email" in k or "почта" in k:
                     person.emails.append(v.lower())
+                elif "инн" in k:
+                    person.extra_inns.append(v)
 
         return person
 
     def _parse_profile_section(self, content: str) -> dict:
-        # TODO: full implementation for ПРОФИЛЬ + БАНКИ
-        return {"raw": content[:2000]}
+        """
+        Parse ПРОФИЛЬ + БАНКИ sections.
+        Extracts ESIA/Gosuslugi data, bank accounts, and other profile info.
+        """
+        result: dict[str, Any] = {
+            "esia_data": {},
+            "banks": [],
+            "other_profile": {},
+            "raw": content[:1500] if len(content) > 1500 else content
+        }
+
+        if not content.strip():
+            return result
+
+        current_bank = None
+        lines = content.splitlines()
+
+        bank_header_re = re.compile(r"^\s*(Банк|Банковская карта|Счет)\s*[:：]?\s*(.+?)$", re.IGNORECASE)
+
+        for line in lines:
+            stripped = line.strip()
+            if not stripped or stripped.startswith("─"):
+                continue
+
+            # Bank section
+            bank_match = bank_header_re.match(stripped)
+            if bank_match:
+                if current_bank:
+                    result["banks"].append(current_bank)
+                current_bank = {
+                    "bank_name": bank_match.group(2).strip(),
+                    "details": {}
+                }
+                continue
+
+            if current_bank and ":" in stripped:
+                key, _, val = stripped.partition(":")
+                current_bank["details"][key.strip()] = val.strip()
+                continue
+
+            # ESIA / Gosuslugi / Profile fields
+            if ":" in stripped:
+                key, _, val = stripped.partition(":")
+                key = key.strip()
+                val = val.strip()
+
+                key_lower = key.lower()
+                if any(x in key_lower for x in ["есия", "госуслуги", "esia", "учетная запись"]):
+                    result["esia_data"][key] = val
+                elif any(x in key_lower for x in ["инн", "снилс", "телефон", "email", "дата рождения"]):
+                    result["other_profile"][key] = val
+                else:
+                    result["other_profile"][key] = val
+
+        if current_bank:
+            result["banks"].append(current_bank)
+
+        return result
 
     def _parse_documents_section(self, content: str) -> list[dict]:
         """
-        Parse ДОКУМЕНТЫ section.
-        Supports structure:
-            [Тип документа] серия номер
-                Дата выдачи: ...
-                Кем выдан: ...
-                Код подразделения: ...
-                ...
+        Enhanced parser for ДОКУМЕНТЫ section with better pattern recognition.
         """
         documents: list[dict] = []
         if not content.strip():
             return documents
 
         lines = content.splitlines()
-        i = 0
         current_doc = None
 
+        # More robust header detection for different document types
         doc_header_re = re.compile(r"^\s*\[([^\]]+)\]\s*(.+?)$")
 
-        while i < len(lines):
-            line = lines[i].rstrip()
+        # Common document type normalizer
+        doc_type_map = {
+            "паспорт рф": "passport_rf",
+            "загран": "foreign_passport",
+            "заграничный паспорт": "foreign_passport",
+            "снилс": "snils",
+            "инн": "inn",
+            "водительское": "driver_license",
+            "полис": "oms_policy",
+        }
+
+        for line in lines:
             stripped = line.strip()
+            if not stripped:
+                continue
 
             header_match = doc_header_re.match(stripped)
             if header_match:
-                # Save previous document if exists
                 if current_doc:
                     documents.append(current_doc)
 
-                doc_type = header_match.group(1).strip()
-                number_raw = header_match.group(2).strip()
+                raw_type = header_match.group(1).strip()
+                number_part = header_match.group(2).strip()
+
+                # Normalize document type
+                doc_type_key = raw_type.lower()
+                normalized_type = doc_type_map.get(doc_type_key, raw_type.lower().replace(" ", "_"))
 
                 current_doc = {
-                    "doc_type": doc_type,
-                    "number_raw": number_raw,
+                    "doc_type": normalized_type,
+                    "doc_type_raw": raw_type,
+                    "number_raw": number_part,
                     "fields": {},
                     "raw_lines": [stripped]
                 }
 
-                # Try to extract series/number from the raw number string
-                parts = re.findall(r"\d+", number_raw)
-                if len(parts) >= 2:
-                    current_doc["series"] = parts[0]
-                    current_doc["number"] = "".join(parts[1:])
-                elif len(parts) == 1:
-                    current_doc["number"] = parts[0]
+                # Extract series and number more intelligently
+                digits = re.findall(r"\d+", number_part)
+                if len(digits) >= 2:
+                    current_doc["series"] = digits[0]
+                    current_doc["number"] = "".join(digits[1:])
+                elif len(digits) == 1:
+                    current_doc["number"] = digits[0]
 
-                i += 1
                 continue
 
-            # Indented fields under current document
-            if current_doc and (line.startswith("    ") or line.startswith("\t")) and ":" in stripped:
-                key, _, value = stripped.partition(":")
-                key = key.strip()
-                value = value.strip()
-                if key:
-                    current_doc["fields"][key] = value
-                    current_doc["raw_lines"].append(stripped)
+            # Indented or continued fields
+            if current_doc and (line.startswith("    ") or line.startswith("\t") or stripped.startswith("    ")):
+                if ":" in stripped:
+                    key, _, value = stripped.partition(":")
+                    key = key.strip(" \t-")
+                    value = value.strip()
+                    if key:
+                        current_doc["fields"][key] = value
+                        current_doc["raw_lines"].append(stripped)
 
-            i += 1
+                        # Try to extract common structured fields
+                        key_lower = key.lower()
+                        if "дата выдачи" in key_lower:
+                            current_doc["issue_date"] = normalize_date(value)
+                        elif "кем выдан" in key_lower:
+                            current_doc["issuer"] = value
+                        elif "код подразделения" in key_lower or "код" in key_lower:
+                            current_doc["issuer_code"] = value
+                        elif "дата рождения" in key_lower:
+                            current_doc["birth_place"] = value  # sometimes misused
 
-        # Don't forget the last document
         if current_doc:
             documents.append(current_doc)
 
@@ -268,11 +344,7 @@ class DossierParser:
 
     def _parse_connections_section(self, content: str) -> list[dict]:
         """
-        Parse ВОЗМОЖНЫЕ СВЯЗИ section.
-        Detects:
-        - По ФИО (relatives)
-        - По адресу (cohabitants)
-        - По билету (flight companions / travel companions)
+        Improved parser for ВОЗМОЖНЫЕ СВЯЗИ with more patterns.
         """
         connections: list[dict] = []
         if not content.strip():
@@ -281,41 +353,43 @@ class DossierParser:
         lines = content.splitlines()
         current_connection = None
 
-        connection_header_re = re.compile(r"^(По ФИО|По адресу|По билету|По телефону|По документу)\s*·?\s*(.+?)$", re.IGNORECASE)
+        # Expanded patterns for different connection types
+        connection_patterns = [
+            (r"^(По ФИО|Родственники|По имени)", "relative"),
+            (r"^(По адресу|Сожители|По прописке)", "address_cohabitant"),
+            (r"^(По билету|Попутчики|По рейсу|Авиаперелеты)", "flight_companion"),
+            (r"^(По телефону|По номеру)", "phone_contact"),
+            (r"^(По документу|По паспорту)", "document_match"),
+            (r"^(По ИНН|По СНИЛС)", "identifier_match"),
+        ]
 
         for line in lines:
             stripped = line.strip()
             if not stripped:
                 continue
 
-            header_match = connection_header_re.match(stripped)
-            if header_match:
-                # Save previous
-                if current_connection:
-                    connections.append(current_connection)
+            matched = False
+            for pattern, conn_type in connection_patterns:
+                match = re.match(pattern, stripped, re.IGNORECASE)
+                if match:
+                    if current_connection:
+                        connections.append(current_connection)
 
-                conn_type_raw = header_match.group(1).strip().lower()
-                related_info = header_match.group(2).strip()
+                    related_info = stripped[match.end():].strip(" ·:-")
+                    current_connection = {
+                        "connection_type": conn_type,
+                        "related_fio": related_info,
+                        "context": stripped,
+                        "details": [],
+                        "raw": stripped
+                    }
+                    matched = True
+                    break
 
-                conn_type = "other"
-                if "фио" in conn_type_raw:
-                    conn_type = "relative"
-                elif "адресу" in conn_type_raw:
-                    conn_type = "address_cohabitant"
-                elif "билету" in conn_type_raw:
-                    conn_type = "flight_companion" if "попутчик" in stripped.lower() else "travel_companion"
-
-                current_connection = {
-                    "connection_type": conn_type,
-                    "related_fio": related_info,
-                    "context": stripped,
-                    "details": []
-                }
-                continue
-
-            # Additional details under the connection
-            if current_connection and stripped.startswith("·"):
-                current_connection["details"].append(stripped)
+            if not matched and current_connection:
+                # Collect additional details
+                if stripped.startswith("·") or stripped.startswith("-") or ":" in stripped:
+                    current_connection["details"].append(stripped)
 
         if current_connection:
             connections.append(current_connection)
