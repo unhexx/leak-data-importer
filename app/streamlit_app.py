@@ -36,7 +36,7 @@ with st.sidebar:
 
     source_path = st.text_input(
         "Source path (file or folder)",
-        value=r"C:\_PROJECT\leak-data-importer\data\raw",
+        value=r"X:\LocalRepo\leak-data-importer\data\raw",
         help="Path to report_*.txt files or a single file"
     )
 
@@ -79,6 +79,50 @@ if result:
     # Entity breakdown
     st.markdown("### Entities by Type")
     st.json(s.get("entities_by_type", result.graph.entity_count_by_type()))
+
+    # === NEW: Detailed view of loaded objects and their properties ===
+    st.markdown("## 🔍 Detailed Loaded Objects")
+
+    if result.graph.entities:
+        # Group entities by type
+        from collections import defaultdict
+        entities_by_type = defaultdict(list)
+        for e in result.graph.entities:
+            entities_by_type[e.type].append(e)
+
+        for entity_type, entities in sorted(entities_by_type.items()):
+            with st.expander(f"**{entity_type.upper()}** ({len(entities)} items)", expanded=True):
+                for i, entity in enumerate(entities[:50]):  # Limit to first 50 per type for performance
+                    with st.container(border=True):
+                        st.markdown(f"**ID:** `{entity.id[:12]}...`")
+                        st.markdown(f"**Canonical Key:** `{entity.canonical_key}`")
+                        
+                        # Properties
+                        st.markdown("**Properties:**")
+                        if entity.properties:
+                            # Nice display of properties
+                            for k, v in entity.properties.items():
+                                if isinstance(v, (dict, list)):
+                                    st.json({k: v}, expanded=False)
+                                else:
+                                    st.write(f"- **{k}**: {v}")
+                        else:
+                            st.caption("No properties")
+
+                        # Source refs
+                        if entity.source_refs:
+                            st.caption(f"Sources: {', '.join(entity.source_refs[:3])}")
+
+                if len(entities) > 50:
+                    st.caption(f"... and {len(entities) - 50} more {entity_type} entities")
+
+    # Relationships summary
+    if result.graph.relationships:
+        st.markdown("### Relationships Overview")
+        rel_types = {}
+        for rel in result.graph.relationships:
+            rel_types[rel.type] = rel_types.get(rel.type, 0) + 1
+        st.json(rel_types)
 
     # Parser stats
     with st.expander("Parser Internal Statistics"):

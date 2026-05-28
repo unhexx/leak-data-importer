@@ -16,11 +16,23 @@
 [CmdletBinding()]
 param()
 
-$ErrorActionPreference = 'SilentlyContinue'
+# Save original preference and restore it after loading.
+# IMPORTANT: We no longer leave $ErrorActionPreference set to SilentlyContinue
+# globally (this was causing missing output in many commands).
+# We only use it temporarily while loading the main script.
+$__originalErrorAction = $ErrorActionPreference
 
-# Определяем путь к основному скрипту относительно этого файла
-$__poshBashChainingMain = Join-Path $PSScriptRoot 'Enable-BashChaining.ps1'
+try {
+    $ErrorActionPreference = 'SilentlyContinue'
 
-if (Test-Path $__poshBashChainingMain) {
-    . $__poshBashChainingMain
+    # Определяем путь к основному скрипту относительно этого файла
+    $__poshBashChainingMain = Join-Path $PSScriptRoot 'Enable-BashChaining.ps1'
+
+    if (Test-Path $__poshBashChainingMain) {
+        . $__poshBashChainingMain
+    }
+}
+finally {
+    # Always restore the original preference
+    $ErrorActionPreference = $__originalErrorAction
 }

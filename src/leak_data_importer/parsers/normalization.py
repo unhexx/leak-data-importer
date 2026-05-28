@@ -80,11 +80,13 @@ def normalize_fio(fio: str) -> str:
 
 
 def normalize_inn(inn: str) -> Optional[str]:
-    """Remove non-digits from INN."""
+    """Normalize INN: accept only pure digit strings of length 10 or 12."""
     if not inn:
         return None
-    digits = re.sub(r"\D", "", inn)
-    return digits if len(digits) in (10, 12) else None
+    cleaned = inn.strip()
+    if not re.fullmatch(r"\d{10}|\d{12}", cleaned):
+        return None
+    return cleaned
 
 
 def normalize_snils(snils: str) -> Optional[str]:
