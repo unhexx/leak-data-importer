@@ -3,13 +3,14 @@
     Robust initialization script for Blackbox + MiniMax2.5 agentic development in VSCode.
 
 .DESCRIPTION
-    Prepares a reliable local Python virtual environment and can generate
-    a ready-to-use starter prompt for Blackbox.
+    Prepares a reliable local Python virtual environment and generates
+    a high-quality starter prompt for the Agentic Loop.
 
-    Key improvements:
-    - Automatically creates or repairs broken .venv
-    - Clear, step-by-step messages with status
+    Key features:
+    - Creates or repairs broken .venv even when PATH contains junk Pythons (Inkscape, etc.)
     - Auto-detects task from TODO.md or TASK_SPECIFICATION.md
+    - Generates strong structured prompts with Pre-Flight Checklist + role temperatures
+    - Supports generating reusable templates with {{PLACEHOLDERS}} via -GenerateTemplate
 #>
 
 [CmdletBinding()]
@@ -18,7 +19,9 @@ param(
     [string]$TaskSpecFile = "TASK_SPECIFICATION.md",
     [string]$OutputFile,
     [switch]$GeneratePromptOnly,
-    [int]$MaxTaskLength = 2800
+    [int]$MaxTaskLength = 2800,
+    [string]$ProjectName,
+    [switch]$GenerateTemplate   # Generate reusable prompt with {{PLACEHOLDERS}} instead of filled content
 )
 
 $ErrorActionPreference = "Stop"
@@ -60,37 +63,218 @@ function Get-AutoTaskDescription {
 }
 
 function Generate-AgentStarterPrompt {
-    param([string]$Task, [string]$SpecFile = "TASK_SPECIFICATION.md")
-
-    $lines = @(
-        "We are starting an autonomous agentic development loop using the template in agentic_loop_template/.",
-        "",
-        "**Current Task:**",
-        $Task,
-        "",
-        "**Instructions:**",
-        "",
-        "1. First, ensure the local Python environment is ready by running:",
-        "   powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1",
-        "",
-        "2. Activate the virtual environment:",
-        "   . .\.venv\Scripts\Activate.ps1",
-        "",
-        "3. Read in this order:",
-        "   - docs/agentic_loop/README.md",
-        "   - docs/agentic_loop/SYSTEM_PROMPT.md",
-        "   - docs/agentic_loop/Agent-Init.md",
-        "   - $SpecFile",
-        "",
-        "4. Start as ORCHESTRATOR according to the SYSTEM_PROMPT.",
-        "",
-        "Rules:",
-        "- Write all git commits in natural Russian, as a real human developer.",
-        "- Never mention AI, LLM, agent, MiniMax, Grok, Claude, etc. in commit messages.",
-        "- Always work inside the local .venv."
+    param(
+        [string]$Task,
+        [string]$SpecFile = "TASK_SPECIFICATION.md",
+        [string]$ProjectName = "MyProject",
+        [string]$ProjectRoot = ".",
+        [switch]$AsTemplate
     )
 
-    return ($lines -join "`r`n")
+    # Generates a strong, structured starter prompt for the Agentic Loop v2.1.
+    # When -AsTemplate is used, outputs a reusable version with clear {{PLACEHOLDERS}}.
+
+    if ($AsTemplate) {
+        # Reusable template version (ideal when copying agentic_loop_template to a new project)
+        $prompt = @"
+# Agentic Development Loop — Session Initialization (Template v2.1)
+
+**Project:** {{ PROJECT_NAME }}
+
+## Current Task / Specification
+
+{{ TASK_SPECIFICATION }}
+
+---
+
+## MANDATORY FIRST ACTIONS (do these immediately)
+
+1. **Environment Bootstrap**
+   Run this command first:
+   \`\`\`powershell
+   powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
+   \`\`\`
+
+2. **Activate Virtual Environment** (if not already active)
+   \`\`\`powershell
+   . .\.venv\Scripts\Activate.ps1
+   \`\`\`
+
+3. **Complete the Pre-Flight Checklist**
+   Before doing any real work, open and fully complete the **Pre-Flight Checklist** section in:
+   \`docs/agentic_loop/SYSTEM_PROMPT.md\` (version 2.1)
+   All placeholders must be verified or filled.
+
+---
+
+## REQUIRED READING ORDER (read in this exact sequence)
+
+1. \`docs/agentic_loop/README.md\`
+2. \`docs/agentic_loop/SYSTEM_PROMPT.md\` ← **Most important document**
+3. \`docs/agentic_loop/AGENT_ROLES.md\` (detailed instructions + recommended temperatures per role)
+4. \`docs/agentic_loop/HANDOFF_SCHEMA.md\` (strict JSON format for role transitions)
+5. \`docs/agentic_loop/Agent-Init.md\`
+6. Current specification file (\`{{ SPEC_FILE }}\`)
+
+Only after reading the above, proceed to act.
+
+---
+
+## Agentic Cycle Structure & Recommended Temperatures
+
+You operate in a repeating closed loop:
+
+| Role           | Temperature | Primary Responsibility                                      |
+|----------------|-------------|-------------------------------------------------------------|
+| **Orchestrator**  | 0.0         | Status assessment, planning, env prep, handoff to next role |
+| **Coder**         | 0.2         | Implementation, code changes, migrations                    |
+| **Tester**        | 0.0         | Writing/running tests, coverage, edge cases                 |
+| **Debugger**      | 0.2         | Fixing bugs and test failures                               |
+| **Reviewer**      | 0.0         | Spec compliance check, quality gate, decide next step       |
+
+**Start this session as ORCHESTRATOR.**
+
+After the Reviewer finishes, it decides whether to return control to the Orchestrator or conclude the task.
+
+---
+
+## Core Operating Rules (never break these)
+
+- **Thinking discipline**: Always use PLAN → ACT → REFLECT. Never do more than 3 tool calls without an explicit REFLECT step.
+- **Environment discipline**: All Python work happens exclusively inside the local \`.venv\`. Never use system \`python\` or \`pip\`.
+- **Commit discipline**: Every git commit message must be written in natural Russian, in the voice of a real mid/senior developer who has been working on this project for months. **Strictly forbidden** to mention AI, LLM, agent, MiniMax, Grok, Claude, or any model name in commit messages.
+- **Handoff discipline**: Role transitions must follow the exact JSON schema defined in \`HANDOFF_SCHEMA.md\`.
+- **Self-improvement**: After each full cycle the Reviewer must update \`PROJECT_CONTEXT.md\` and \`SPRINTPLAN.md\`.
+- **Quality bar**: All delivered code must be production-grade (typed, logged, error-handled, tested).
+
+---
+
+## Your Immediate Task as ORCHESTRATOR
+
+After completing the reading and Pre-Flight Checklist:
+
+1. Run the environment bootstrap script again (to ensure everything is fresh).
+2. Perform a full project status assessment (\`git status\`, recent commits, key files).
+3. Update or create \`PROJECT_CONTEXT.md\` with current state and cycle number.
+4. Create or update \`SPRINTPLAN.md\` with clear, prioritized tasks for the current specification.
+5. Begin the first planning phase according to the Orchestrator instructions in \`AGENT_ROLES.md\`.
+
+Now begin.
+
+---
+
+**Template Version:** 2.1  |  Optimized for MiniMax 2.5 + Blackbox (non-interactive PowerShell)
+
+---
+
+## How to use this template for a new project
+
+1. Copy the entire `agentic_loop_template/` folder into your new project.
+2. Replace the placeholders above:
+   - `{{ PROJECT_NAME }}` → your project name
+   - `{{ TASK_SPECIFICATION }}` → content of your TODO.md or TASK_SPECIFICATION.md
+   - `{{ SPEC_FILE }}` → name of your spec file
+3. (Optional) Customize the "MANDATORY FIRST ACTIONS" section for your environment.
+4. Save as `starter_prompt.md` and use it as the first message to the agent.
+"@
+    }
+    else {
+        # Filled version for immediate use
+        $venvActivate = ". .\.venv\Scripts\Activate.ps1"
+        $agentInitCmd = "powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1"
+
+        $prompt = @"
+# Agentic Development Loop — Session Initialization (Template v2.1)
+
+**Project:** $ProjectName
+
+## Current Task / Specification
+
+$Task
+
+---
+
+## MANDATORY FIRST ACTIONS (do these immediately)
+
+1. **Environment Bootstrap**
+   Run this command first:
+   \`\`\`powershell
+   $agentInitCmd
+   \`\`\`
+
+2. **Activate Virtual Environment** (if not already active)
+   \`\`\`powershell
+   $venvActivate
+   \`\`\`
+
+3. **Complete the Pre-Flight Checklist**
+   Before doing any real work, open and fully complete the **Pre-Flight Checklist** section in:
+   \`docs/agentic_loop/SYSTEM_PROMPT.md\` (version 2.1)
+   All placeholders must be verified or filled.
+
+---
+
+## REQUIRED READING ORDER (read in this exact sequence)
+
+1. \`docs/agentic_loop/README.md\`
+2. \`docs/agentic_loop/SYSTEM_PROMPT.md\` ← **Most important document**
+3. \`docs/agentic_loop/AGENT_ROLES.md\` (detailed instructions + recommended temperatures per role)
+4. \`docs/agentic_loop/HANDOFF_SCHEMA.md\` (strict JSON format for role transitions)
+5. \`docs/agentic_loop/Agent-Init.md\`
+6. Current specification file ($SpecFile)
+
+Only after reading the above, proceed to act.
+
+---
+
+## Agentic Cycle Structure & Recommended Temperatures
+
+You operate in a repeating closed loop:
+
+| Role           | Temperature | Primary Responsibility                                      |
+|----------------|-------------|-------------------------------------------------------------|
+| **Orchestrator**  | 0.0         | Status assessment, planning, env prep, handoff to next role |
+| **Coder**         | 0.2         | Implementation, code changes, migrations                    |
+| **Tester**        | 0.0         | Writing/running tests, coverage, edge cases                 |
+| **Debugger**      | 0.2         | Fixing bugs and test failures                               |
+| **Reviewer**      | 0.0         | Spec compliance check, quality gate, decide next step       |
+
+**Start this session as ORCHESTRATOR.**
+
+After the Reviewer finishes, it decides whether to return control to the Orchestrator or conclude the task.
+
+---
+
+## Core Operating Rules (never break these)
+
+- **Thinking discipline**: Always use PLAN → ACT → REFLECT. Never do more than 3 tool calls without an explicit REFLECT step.
+- **Environment discipline**: All Python work happens exclusively inside the local \`.venv\`. Never use system \`python\` or \`pip\`.
+- **Commit discipline**: Every git commit message must be written in natural Russian, in the voice of a real mid/senior developer who has been working on this project for months. **Strictly forbidden** to mention AI, LLM, agent, MiniMax, Grok, Claude, or any model name in commit messages.
+- **Handoff discipline**: Role transitions must follow the exact JSON schema defined in \`HANDOFF_SCHEMA.md\`.
+- **Self-improvement**: After each full cycle the Reviewer must update \`PROJECT_CONTEXT.md\` and \`SPRINTPLAN.md\`.
+- **Quality bar**: All delivered code must be production-grade (typed, logged, error-handled, tested).
+
+---
+
+## Your Immediate Task as ORCHESTRATOR
+
+After completing the reading and Pre-Flight Checklist:
+
+1. Run the environment bootstrap script again (to ensure everything is fresh).
+2. Perform a full project status assessment (\`git status\`, recent commits, key files).
+3. Update or create \`PROJECT_CONTEXT.md\` with current state and cycle number.
+4. Create or update \`SPRINTPLAN.md\` with clear, prioritized tasks for the current specification.
+5. Begin the first planning phase according to the Orchestrator instructions in \`AGENT_ROLES.md\`.
+
+Now begin.
+
+---
+
+**Template Version:** 2.1  |  Optimized for MiniMax 2.5 + Blackbox (non-interactive PowerShell)
+"@
+    }
+
+    return $prompt
 }
 
 # ============================================
@@ -411,19 +595,36 @@ if (-not $finalTask) {
     $finalTask = Get-AutoTaskDescription -MaxLength $MaxTaskLength
 }
 
-if ($finalTask) {
-    $prompt = Generate-AgentStarterPrompt -Task $finalTask -SpecFile $TaskSpecFile
+# Auto-detect project name if not provided
+if (-not $ProjectName) {
+    $ProjectName = Split-Path $ProjectRoot -Leaf
+}
+
+if ($finalTask -or $GenerateTemplate) {
+    $prompt = Generate-AgentStarterPrompt `
+        -Task $finalTask `
+        -SpecFile $TaskSpecFile `
+        -ProjectName $ProjectName `
+        -AsTemplate:$GenerateTemplate
 
     if ($OutputFile) {
         $out = if ([System.IO.Path]::IsPathRooted($OutputFile)) { $OutputFile } else { Join-Path $ProjectRoot $OutputFile }
-        # Write as clean UTF-8 (no BOM) — better for pasting into agents/LLMs
         [System.IO.File]::WriteAllText($out, $prompt, [System.Text.Encoding]::UTF8)
         Write-Host "  Starter prompt saved to: $out" -ForegroundColor Green
     }
 
-    Write-Host "`n=== Ready-to-use prompt for Blackbox ===" -ForegroundColor Yellow
+    if ($GenerateTemplate) {
+        Write-Host "`n=== REUSABLE PROMPT TEMPLATE (with placeholders) ===" -ForegroundColor Cyan
+        Write-Host "Use this version when copying the agentic_loop_template to a new project." -ForegroundColor DarkGray
+    } else {
+        Write-Host "`n=== Ready-to-use Starter Prompt for Blackbox (copy from here) ===" -ForegroundColor Yellow
+        Write-Host "This prompt is optimized for MiniMax 2.5. It includes Pre-Flight Checklist, role temperatures, and strict instructions." -ForegroundColor DarkGray
+    }
+
+    Write-Host ""
     Write-Host $prompt
-    Write-Host "========================================" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "=====================================================================" -ForegroundColor Yellow
 } else {
     Write-Host "  No task description found automatically." -ForegroundColor DarkYellow
 }

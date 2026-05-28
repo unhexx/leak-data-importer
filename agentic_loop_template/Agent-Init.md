@@ -66,23 +66,45 @@ CRITICAL RULES:
 
 ## Step 3: First Message to the Agent (Copy-Paste)
 
-Use this as the first message when starting a new autonomous development session:
+### Best way (recommended)
+Run this command — it generates a strong, ready-to-use prompt based on your `TODO.md`:
 
+```powershell
+powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
 ```
-We are using the Agentic Loop Template located in agentic_loop_template/.
 
-Please read the following files in order:
+### Generate a reusable template with placeholders (for new projects)
+When you want to copy `agentic_loop_template/` to another project, generate a clean template:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1 -GenerateTemplate -OutputFile starter_prompt_template.md
+```
+
+Then replace the `{{ PLACEHOLDERS }}` with your project data.
+
+### Manual example (filled version)
+```
+# Agentic Development Loop — Session Initialization (Template v2.1)
+
+**Project:** leak-data-importer
+
+## Current Task / Specification
+[paste content of TODO.md or TASK_SPECIFICATION.md here]
+
+## MANDATORY FIRST ACTIONS
+1. Run: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
+2. Activate venv
+3. Complete the Pre-Flight Checklist in docs/agentic_loop/SYSTEM_PROMPT.md
+
+## REQUIRED READING ORDER
 1. docs/agentic_loop/README.md
-2. docs/agentic_loop/SYSTEM_PROMPT.md
-3. docs/agentic_loop/Agent-Init.md
+2. docs/agentic_loop/SYSTEM_PROMPT.md (version 2.1)
+3. docs/agentic_loop/AGENT_ROLES.md
+4. docs/agentic_loop/HANDOFF_SCHEMA.md
+5. Current specification file
 
-Then:
-- Run the environment initialization: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
-- Activate the venv
-- Read the main task specification (TASK_SPECIFICATION.md or equivalent)
-- Start acting as ORCHESTRATOR and begin the agentic loop.
-
-Use natural Russian developer-style commit messages only.
+Start as ORCHESTRATOR (temperature 0.0). Follow the full role cycle with PLAN → ACT → REFLECT discipline.
+All git commits must be in natural Russian, written as a real human developer.
 ```
 
 ---
