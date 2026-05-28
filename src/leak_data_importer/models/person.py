@@ -25,11 +25,15 @@ class PersonRecord:
     snils: list[str] = field(default_factory=list)
     inn: list[str] = field(default_factory=list)
 
-    # Additional fields frequently seen in these dumps
+    # Additional fields frequently seen in rich blocks
     esia_id: Optional[str] = None
-    addresses: list[str] = field(default_factory=list)
-    registration_dates: list[str] = field(default_factory=list)
-    other_ids: dict[str, list[str]] = field(default_factory=dict)  # ICCID, IMSI, VIN, etc.
+    translit_name: Optional[str] = None          # ФИО на латинице
+
+    # Structured rich data (much better than dumping everything to raw_data)
+    addresses: list[dict] = field(default_factory=list)           # [{"type": "registration", "value": "...", "date": "..."}]
+    registration_events: list[dict] = field(default_factory=list) # date, ip, system, airport_code, etc.
+    other_ids: dict[str, list[str]] = field(default_factory=dict) # inn, foreign_passport, ogrn, iccid, imsi, vin, etc.
+    vehicle_info: dict = field(default_factory=dict)              # vin, model, year, etc.
 
     # Provenance & quality
     source_file: Optional[str] = None

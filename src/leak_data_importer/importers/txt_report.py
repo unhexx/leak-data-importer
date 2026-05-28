@@ -56,15 +56,20 @@ class TxtReportImporter(BaseImporter):
     name = "txt_report"
     supported_extensions = (".txt",)
 
-    # Broad synonym map for fields commonly seen in these Russian dumps
+    # Broad + aggressive synonym map for rich blocks in real dumps
     FIELD_SYNONYMS = {
         "full_name": {"фио", "фамилия имя отчество", "name", "ф.и.о", "ф и о"},
         "phone": {"телефон", "мобильный", "тел", "phone", "моб.", "мобильник"},
-        "passport": {"паспорт", "пасп", "passport", "серия и номер", "паспорт рф"},
+        "passport": {"паспорт", "пасп", "passport", "серия и номер", "паспорт рф", "загран"},
         "snils": {"снилс", "snils", "страховое свидетельство"},
         "email": {"email", "e-mail", "эл. почта", "почта", "e mail"},
         "esia": {"esia id", "esia", "есия", "госуслуги"},
         "birth": {"дата рождения", "д.р.", "родился", "дата рожд"},
+        "inn": {"инн", "inn"},
+        "translit_name": {"??? ?? ??????????", "фио латиница", "name eng", "translit"},
+        "vin": {"vin ?????", "vin"},
+        "car_model": {"модель авто", "марка", "авто", "тс"},
+        "airport_code": {"??? ????????? ??????", "??? ????????? ????????"},
     }
 
     CONF_SCORE = re.compile(r"\((\d+)\s*/\s*(\d+)\)")
@@ -123,6 +128,145 @@ class TxtReportImporter(BaseImporter):
         if xscores:
             return min(0.92, sum(xscores) / (len(xscores) * 25 + 5))
         return None
+
+    # ==================== AGGRESSIVE RICH BLOCK PARSERS ====================
+
+    def _extract_translit_name(self, block: str) -> Optional[str]:
+        for variant in self.FIELD_SYNONYMS.get("translit_name", set()):
+            for val in self._get_values_for_label(block, variant):
+                if re.search(r"[A-Z]{3,}", val):  # looks like translit
+                    return val.strip()
+        return None
+
+    def _extract_addresses_aggressive(self, block: str) -> list[dict]:
+        """Capture different kinds of addresses with context."""
+        addresses = []
+        addr_variants = ["адрес", "????? ? ??????", "????? ??????"]
+
+        for variant in addr_variants:
+            for val in self._get_values_for_label(block, variant):
+                addr_type = "unknown"
+                if "регистрац" in variant.lower() or "пропис" in variant.lower():
+                    addr_type = "registration"
+                elif "прожив" in variant.lower():
+                    addr_type = "residence"
+                addresses.append({
+                    "type": addr_type,
+                    "value": val.strip(),
+                    "raw_label": variant
+                })
+        return addresses
+
+    def _extract_registration_events(self, block: str) -> list[dict]:
+        """Extract registration / authorization events with dates, IPs, systems."""
+        events = []
+        date_variants = [
+            "дата регистрации", "дата авторизации", "???? ?????? ????????",
+            "???? ???????????", "дата выдачи", "дата регистрации в"
+        ]
+
+        for variant in date_variants:
+            for val in self._get_values_for_label(block, variant):
+                event = {
+                    "raw_label": variant,
+                    "date": val.strip()
+                }
+                # Try to extract IP if present in same line or nearby
+                ip_match = re.search(r"(\d{1,3}(?:\.\d{1,3}){3})", val)
+                if ip_match:
+                    event["ip"] = ip_match.group(1)
+                events.append(event)
+        return events
+
+    def _extract_other_ids_aggressive(self, block: str) -> dict[str, list[str]]:
+        """Capture INN, foreign IDs, system IDs, etc."""
+        ids: dict[str, list[str]] = defaultdict(list)
+
+        for canon, variants in self.FIELD_SYNONYMS.items():
+            if canon in ("inn", "foreign_id"):
+                for var in variants:
+                    for val in self._get_values_for_label(block, var):
+                        ids[canon].append(val.strip())
+
+        # Generic "ID ..." fields
+        for line in block.splitlines():
+            if re.match(r"ID\s", line, re.IGNORECASE):
+                val = line.split(":", 1)[-1].strip()
+                if val:
+                    ids["other_system_id"].append(val)
+
+        return dict(ids)
+
+    def _extract_vehicle_info(self, block: str) -> dict:
+        info = {}
+        for val in self._get_values_for_label(block, "vin"):
+            if len(val) > 10:
+                info["vin"] = val.strip()
+        for val in self._get_values_for_label(block, "car_model"):
+            info["model"] = val.strip()
+        return info
+
+    def _promote_from_raw_data(self, rec: PersonRecord):
+        """Aggressively classify and move valuable fields out of raw_data into structured slots.
+        Uses both key hints and value patterns (more reliable for these messy dumps).
+        """
+        if not rec.raw_data:
+            return
+
+        to_remove = []
+
+        for key, values in list(rec.raw_data.items()):
+            key_lower = key.lower()
+
+            for val in values:
+                v = val.strip()
+
+                # VIN (17 chars, mostly alphanum)
+                if re.match(r"^[A-Z0-9]{17}$", v.replace(" ", "").upper()):
+                    rec.vehicle_info["vin"] = v
+                    to_remove.append(key)
+                    continue
+
+                # Looks like INN
+                digits = re.sub(r"\D", "", v)
+                if len(digits) in (10, 12):
+                    rec.other_ids.setdefault("inn", []).append(v)
+                    to_remove.append(key)
+                    continue
+
+                # Looks like a date
+                if re.match(r"\d{2}\.\d{2}\.\d{4}", v):
+                    rec.registration_events.append({"date": v, "raw_label": key})
+                    to_remove.append(key)
+                    continue
+
+                # Looks like address (contains street-like words or numbers + city)
+                if any(w in v.lower() for w in ["ул.", "ул ", "д.", "кв.", "г.", "обл."]) or len(v) > 25:
+                    rec.addresses.append({"type": "unknown", "value": v, "raw_label": key})
+                    to_remove.append(key)
+                    continue
+
+                # IP address
+                if re.match(r"\d{1,3}(\.\d{1,3}){3}", v):
+                    rec.registration_events.append({"ip": v, "raw_label": key})
+                    to_remove.append(key)
+                    continue
+
+                # Translit name (lots of uppercase Latin letters)
+                if re.search(r"[A-Z]{4,}.*[A-Z]{4,}", v) and len(v) > 8:
+                    rec.translit_name = v
+                    to_remove.append(key)
+                    continue
+
+                # Car model hints
+                if any(m in v.upper() for m in ["MAZDA", "TOYOTA", "BMW", "MERCEDES", "CX-", "KIA"]):
+                    rec.vehicle_info.setdefault("models", []).append(v)
+                    to_remove.append(key)
+                    continue
+
+        # Remove duplicates
+        for key in set(to_remove):
+            rec.raw_data.pop(key, None)
 
     # ---------- Block strategies ----------
 
@@ -187,7 +331,7 @@ class TxtReportImporter(BaseImporter):
         if name: rec.full_name = name
         if birth: rec.birth_date = birth
 
-        # Greedy extraction for rich blocks
+        # Standard fields
         for canon, variants in self.FIELD_SYNONYMS.items():
             for var in variants:
                 for v in self._get_values_for_label(block, var):
@@ -204,13 +348,28 @@ class TxtReportImporter(BaseImporter):
                         if 8 <= len(c) <= 12: rec.passports.append(c)
                     elif canon == "esia":
                         rec.esia_id = v.strip()
+                    elif canon == "translit_name":
+                        rec.translit_name = v.strip()
+                    elif canon == "inn":
+                        rec.other_ids.setdefault("inn", []).append(v.strip())
+                    elif canon == "vin":
+                        rec.vehicle_info["vin"] = v.strip()
 
-        # Catch everything else interesting
-        extra_keys = ["адрес", "дата регистрации", "дата авторизации", "ip", "iccid", "imsi", "vin", "дата"]
-        for key in extra_keys:
-            vals = self._get_values_for_label(block, key)
-            if vals:
-                rec.other_ids.setdefault(key, []).extend(vals)
+        # === AGGRESSIVE RICH-SPECIFIC EXTRACTION ===
+        rec.translit_name = rec.translit_name or self._extract_translit_name(block)
+        rec.addresses.extend(self._extract_addresses_aggressive(block))
+        rec.registration_events.extend(self._extract_registration_events(block))
+        rec.other_ids.update(self._extract_other_ids_aggressive(block))
+
+        vehicle = self._extract_vehicle_info(block)
+        if vehicle:
+            rec.vehicle_info.update(vehicle)
+
+        # Final fallback for anything still missed (kept for lossless guarantee)
+        # We already captured everything in raw_data at the beginning of _parse_block
+
+        # === POST-PROCESSING: Aggressively promote from raw_data into structured fields ===
+        self._promote_from_raw_data(rec)
 
         rec.confidence = self._extract_confidence(block) or 0.55
         rec.parsing_strategy = "rich_detailed"
@@ -387,6 +546,26 @@ class TxtReportImporter(BaseImporter):
                     entity_by_key[key] = acc
                     graph.entities.append(acc)
                 graph.relationships.append(owns_account(person.id, entity_by_key[key].id, "esia", source=rec.source_block_id))
+
+            # Addresses from rich blocks
+            for addr in rec.addresses:
+                addr_str = addr.get("value") or addr.get("address")
+                if addr_str:
+                    ad = make_address(addr_str, source_ref=rec.source_block_id)
+                    if ad.canonical_key not in entity_by_key:
+                        entity_by_key[ad.canonical_key] = ad
+                        graph.entities.append(ad)
+                    graph.relationships.append(registered_at(person.id, ad.id, source=rec.source_block_id))
+
+            # Vehicle
+            if rec.vehicle_info.get("vin"):
+                vin = rec.vehicle_info["vin"]
+                key = "vehicle:" + vin
+                if key not in entity_by_key:
+                    veh = make_vehicle(vin, source_ref=rec.source_block_id)
+                    entity_by_key[key] = veh
+                    graph.entities.append(veh)
+                # We could add a relationship here if needed later
 
         result = ImportGraphResult(
             graph=graph,
