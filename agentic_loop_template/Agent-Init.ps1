@@ -86,6 +86,7 @@ function Generate-AgentStarterPrompt {
 # ============================================
 
 Write-Host "=== Agentic Loop Environment Initialization ===" -ForegroundColor Cyan
+Write-Host "Reminder: Before starting work, the agent must complete the Pre-Flight Checklist in SYSTEM_PROMPT.md (version 2.1)." -ForegroundColor DarkGray
 Write-Host "Project: $ProjectRoot" -ForegroundColor Gray
 
 # 1. Locate Python

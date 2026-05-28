@@ -1,103 +1,88 @@
-# HANDOFF SCHEMA — Схема передачи управления между агентами
+# HANDOFF SCHEMA — Control Transfer Between Roles
 
-> Каждое сообщение агента должно заканчиваться **единственным JSON-объектом**.  
-> После JSON — никакого текста.  
-> Все поля обязательны, если не помечены `(опционально)`.  
-> Пустые массивы `[]` и пустые строки `""` — корректные значения. Никогда не опускать поля.
+> Every agent message **must** end with **exactly one JSON object**.  
+> Nothing after the JSON.  
+> All fields are required unless marked `(optional)`.  
+> Empty arrays `[]` and empty strings `""` are valid — never omit fields.
 
 ---
 
-## Полная схема
+## Full Schema (aligned with SYSTEM_PROMPT 2.1)
 
 ```json
 {
-  // ─── ПЕРЕДАЧА УПРАВЛЕНИЯ ───────────────────────────────────────────────
   "handoff_to": "Coder",
-  // Допустимые значения: "Orchestrator" | "Coder" | "Tester" | "Debugger" | "Reviewer" | "None"
-  // "None" используется только при status = "DONE"
+  // Allowed: "Orchestrator" | "Coder" | "Tester" | "Debugger" | "Reviewer" | "None"
+  // Use "None" only when status = "DONE"
 
   "role": "Orchestrator",
-  // Текущая роль: "Orchestrator" | "Coder" | "Tester" | "Debugger" | "Reviewer"
+  // Current role: "Orchestrator" | "Coder" | "Tester" | "Debugger" | "Reviewer"
 
   "current_phase": "planning",
-  // Текущая фаза: "planning" | "implementation" | "testing" | "debugging" | "review" | "finalization"
+  // "planning" | "implementation" | "testing" | "debugging" | "review" | "finalization"
 
   "cycle_number": 0,
-  // Номер внешнего цикла, начиная с 0. Инкрементируется Reviewer в начале нового цикла.
+  // Incremented by Reviewer at the start of each new cycle.
 
-  // ─── РЕЗЮМЕ ────────────────────────────────────────────────────────────
-  "summary": "Краткое описание что было сделано (1–3 предложения).",
+  "summary": "Brief description of what was done (1–3 sentences).",
 
   "context_updates": ["PROJECT_CONTEXT.md", "SPRINTPLAN.md"],
-  // Файлы, которые были обновлены или созданы в этом шаге.
+  // Files that were created or significantly updated in this step.
 
   "artifacts": ["src/parser.py", "src/models.py"],
-  // Пути к файлам/директориям, важным для следующего агента.
+  // Important new or modified files/directories for the next role.
 
   "next_input_files": [
-    "TASK_SPECIFICATION.md",
+    "{{ SPEC_FILE }}",
     "PROJECT_CONTEXT.md",
     "SPRINTPLAN.md"
   ],
-  // Файлы, которые следующий агент ОБЯЗАН прочитать перед началом работы.
+  // Files the next role MUST read before starting work.
 
-  // ─── GIT ───────────────────────────────────────────────────────────────
-  "git_branch": "feature-osint-parser-implementation",
-  // Текущая рабочая ветка.
+  "git_branch": "feature-{{ FEATURE_NAME }}",
 
-  "last_commit": "Обновил контекст проекта и зафиксировал план спринта",
-  // Последнее сообщение коммита (на русском). Пустая строка, если коммитов не было.
+  "last_commit": "Реализовал базовый парсер и добавил тесты на нормализацию",
+  // Last commit message (in Russian). Empty string if no commits were made.
 
-  // ─── УВЕРЕННОСТЬ ───────────────────────────────────────────────────────
-  "confidence": 0.95,
-  // Уверенность в корректности выполненной работы. Диапазон: 0.0–1.0.
-  // < 0.7 = требуется дополнительная проверка перед передачей.
+  "confidence": 0.9,
+  // 0.0–1.0. Below 0.7 usually means the handoff should be reconsidered.
 
-  // ─── МЕТРИКИ (опционально, но рекомендуется всегда заполнять) ──────────
+  "status": "IN_PROGRESS",
+  // "IN_PROGRESS" | "BLOCKED" | "DONE"
+
+  "git_final": "",
+
   "metrics": {
-    "tests_total": 0,
-    // Общее число тестов (0 если не применимо для роли).
-
-    "tests_failed": 0,
-    // Число упавших тестов.
-
-    "coverage": 0.0,
-    // Процент покрытия кода (0.0–100.0).
-
-    "tool_calls": 4,
-    // Число внешних tool calls, выполненных на этом шаге.
-
-    "elapsed_minutes": 7.5
-    // Время выполнения шага в минутах (0 если недоступно).
+    "tests_total": 12,
+    "tests_failed": 3,
+    "coverage": 67.4,
+    "tool_calls": 5,
+    "elapsed_minutes": 14.5
   },
 
-  // ─── НАЙДЕННЫЕ ПРОБЛЕМЫ ────────────────────────────────────────────────
   "issues_found": [
     {
       "type": "env_setup",
-      // Тип проблемы. Стандартные: "env_setup" | "parser_edge_case" | "test_instability"
-      // | "spec_deviation" | "architecture" | "test_bug" | "performance" | "missing_coverage"
-
       "location": "scripts/setup_env.ps1",
-      // Где обнаружена проблема (файл:функция или файл:строка).
-
-      "pattern": "Отсутствует активация виртуального окружения",
-      // Краткое описание паттерна проблемы.
-
-      "frequency": 1
-      // Сколько раз паттерн встречался в этом цикле.
+      "pattern": "Venv not activated before running tests",
+      "frequency": 2
     }
   ],
 
-  // ─── ТЕГИ ПРОЦЕССА ─────────────────────────────────────────────────────
   "process_tags": ["env_setup_missing_checks"],
-  // Короткие метки для рекуррентных процессных проблем.
-  // Стандартные: "too_many_small_commits" | "tests_added_late" | "spec_not_reread"
-  // | "over_engineering" | "missing_edge_case" | "architecture_skipped"
+  // Recurring process problems. Examples: "too_many_small_commits", "spec_not_reread", "architecture_skipped"
 
-  // ─── ОБРАТНАЯ СВЯЗЬ ОТ ПРЕДЫДУЩЕГО АГЕНТА ──────────────────────────────
   "feedback_from_previous": {
-    "what_worked_well": [
+    "what_worked_well": ["Good test coverage on normalization"],
+    "what_needs_improvement": ["Missing error handling in parser"],
+    "suggestions": ["Add retry logic for flaky network calls"]
+  },
+
+  "lessons_learned": [
+    "Always run setup_env.ps1 at the beginning of a new cycle"
+  ]
+}
+```
       "Быстрая реализация моделей",
       "Чёткое разделение нормализаторов"
     ],

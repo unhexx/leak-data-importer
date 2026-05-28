@@ -36,6 +36,8 @@ This script will:
 
 ## Step 2: Recommended Blackbox Custom Instructions
 
+Before the agent starts, make sure it has the latest `SYSTEM_PROMPT.md` (version 2.1) which contains the **Pre-Flight Checklist**. The agent must verify that all placeholders are filled before beginning any work.
+
 Go to Blackbox settings → Custom Instructions (or System Prompt) and add the following block:
 
 ```text
