@@ -58,13 +58,30 @@ if (-not (Test-Path $activateScript)) {
     Write-Error "Activation script missing: $activateScript"
     exit 1
 }
-. $activateScript
-Write-Host "  Environment activated." -ForegroundColor Green
+
+try {
+    . $activateScript
+    # Verify activation worked
+    $venvPythonPath = (Get-Command python).Source
+    if ($venvPythonPath -like "*\.venv\*") {
+        Write-Host "  ✓ Environment activated successfully." -ForegroundColor Green
+    } else {
+        Write-Host "  ⚠ Activation may have failed — Python is not from .venv" -ForegroundColor DarkYellow
+        Write-Host "    Current Python: $venvPythonPath" -ForegroundColor DarkYellow
+    }
+} catch {
+    Write-Error "Failed to activate virtual environment: $_"
+    exit 1
+}
 
 # 4. Upgrade pip
 Write-Host "`n[4/7] Upgrading pip..." -ForegroundColor Yellow
-python -m pip install --upgrade pip --quiet
-Write-Host "  pip upgraded." -ForegroundColor Green
+try {
+    python -m pip install --upgrade pip --quiet 2>&1 | Out-Null
+    Write-Host "  pip upgraded." -ForegroundColor Green
+} catch {
+    Write-Host "  Warning: pip upgrade encountered issues, continuing anyway..." -ForegroundColor DarkYellow
+}
 
 # 5. Install dependencies (prefer pyproject.toml)
 Write-Host "`n[5/7] Installing project dependencies..." -ForegroundColor Yellow
@@ -89,18 +106,25 @@ if (-not $installed -and (Test-Path (Join-Path $ProjectRoot $RequirementsFile)))
 }
 
 if (-not $installed) {
-    Write-Host "  No pyproject.toml or $RequirementsFile found. Skipping." -ForegroundColor DarkYellow
+    Write-Host "  ⚠ No pyproject.toml or $RequirementsFile found in project root." -ForegroundColor DarkYellow
+    Write-Host "    Skipping dependency installation." -ForegroundColor DarkYellow
+    Write-Host "    Create one of these files if this is a new project." -ForegroundColor DarkYellow
 }
 
-# 6. Verify critical packages
+# 6. Verify critical packages (non-fatal)
 Write-Host "`n[6/7] Verifying key packages..." -ForegroundColor Yellow
 $critical = @("pydantic", "charset-normalizer")
+
 foreach ($pkg in $critical) {
-    $check = python -c "import $pkg; print($pkg.__version__)" 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "  $pkg $check" -ForegroundColor Green
-    } else {
-        Write-Host "  $pkg not importable" -ForegroundColor DarkYellow
+    try {
+        $check = python -c "import $pkg; print($pkg.__version__)" 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "  ✓ $pkg $check" -ForegroundColor Green
+        } else {
+            Write-Host "  ⚠ $pkg not importable (run with a dependency file to install)" -ForegroundColor DarkYellow
+        }
+    } catch {
+        Write-Host "  ⚠ Could not verify $pkg — package not installed or import failed" -ForegroundColor DarkYellow
     }
 }
 
