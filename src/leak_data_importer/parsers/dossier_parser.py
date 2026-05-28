@@ -94,6 +94,7 @@ class DossierParser:
             warnings=self.warnings,
         )
 
+        self._post_process(report)
         return report
 
     # ==================== HEADER ====================
@@ -163,24 +164,101 @@ class DossierParser:
     # ==================== SECTION PARSERS (stubs to be expanded) ====================
 
     def _parse_main_person(self, header: dict, sections: dict) -> ParsedPerson:
-        # Very basic implementation for now - will be expanded
-        fio = header.get("main_fio_raw", "Unknown")
-        fio = normalize_fio(fio)
+        fio = normalize_fio(header.get("main_fio_raw", "Unknown"))
 
         birth_date = None
-        if "birth" in str(sections.get("ПРОФИЛЬ", "")).lower():
-            # TODO: proper extraction
-            pass
+        profile_text = sections.get("ПРОФИЛЬ", "") + sections.get("ВСЕ НАЙДЕННЫЕ ЗНАЧЕНИЯ", "")
+        birth_match = re.search(r"(\d{2}\.\d{2}\.\d{4})", profile_text)
+        if birth_match:
+            birth_date = normalize_date(birth_match.group(1))
 
-        return ParsedPerson(fio=fio, birth_date=birth_date)
+        person = ParsedPerson(fio=fio, birth_date=birth_date)
+
+        # Try to extract some main identifiers early from profile
+        for line in profile_text.splitlines():
+            if ":" in line:
+                k, _, v = line.partition(":")
+                k = k.strip().lower()
+                v = v.strip()
+                if "тел" in k:
+                    p = normalize_phone(v)
+                    if p: person.phones.append(p)
+                elif "email" in k or "почта" in k:
+                    person.emails.append(v.lower())
+
+        return person
 
     def _parse_profile_section(self, content: str) -> dict:
         # TODO: full implementation for ПРОФИЛЬ + БАНКИ
         return {"raw": content[:2000]}
 
     def _parse_documents_section(self, content: str) -> list[dict]:
-        # TODO: full recursive parser for ДОКУМЕНТЫ
-        return []
+        """
+        Parse ДОКУМЕНТЫ section.
+        Supports structure:
+            [Тип документа] серия номер
+                Дата выдачи: ...
+                Кем выдан: ...
+                Код подразделения: ...
+                ...
+        """
+        documents: list[dict] = []
+        if not content.strip():
+            return documents
+
+        lines = content.splitlines()
+        i = 0
+        current_doc = None
+
+        doc_header_re = re.compile(r"^\s*\[([^\]]+)\]\s*(.+?)$")
+
+        while i < len(lines):
+            line = lines[i].rstrip()
+            stripped = line.strip()
+
+            header_match = doc_header_re.match(stripped)
+            if header_match:
+                # Save previous document if exists
+                if current_doc:
+                    documents.append(current_doc)
+
+                doc_type = header_match.group(1).strip()
+                number_raw = header_match.group(2).strip()
+
+                current_doc = {
+                    "doc_type": doc_type,
+                    "number_raw": number_raw,
+                    "fields": {},
+                    "raw_lines": [stripped]
+                }
+
+                # Try to extract series/number from the raw number string
+                parts = re.findall(r"\d+", number_raw)
+                if len(parts) >= 2:
+                    current_doc["series"] = parts[0]
+                    current_doc["number"] = "".join(parts[1:])
+                elif len(parts) == 1:
+                    current_doc["number"] = parts[0]
+
+                i += 1
+                continue
+
+            # Indented fields under current document
+            if current_doc and (line.startswith("    ") or line.startswith("\t")) and ":" in stripped:
+                key, _, value = stripped.partition(":")
+                key = key.strip()
+                value = value.strip()
+                if key:
+                    current_doc["fields"][key] = value
+                    current_doc["raw_lines"].append(stripped)
+
+            i += 1
+
+        # Don't forget the last document
+        if current_doc:
+            documents.append(current_doc)
+
+        return documents
 
     def _parse_addresses_section(self, content: str) -> list[dict]:
         return []
@@ -189,13 +267,106 @@ class DossierParser:
         return []
 
     def _parse_connections_section(self, content: str) -> list[dict]:
-        return []
+        """
+        Parse ВОЗМОЖНЫЕ СВЯЗИ section.
+        Detects:
+        - По ФИО (relatives)
+        - По адресу (cohabitants)
+        - По билету (flight companions / travel companions)
+        """
+        connections: list[dict] = []
+        if not content.strip():
+            return connections
+
+        lines = content.splitlines()
+        current_connection = None
+
+        connection_header_re = re.compile(r"^(По ФИО|По адресу|По билету|По телефону|По документу)\s*·?\s*(.+?)$", re.IGNORECASE)
+
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            header_match = connection_header_re.match(stripped)
+            if header_match:
+                # Save previous
+                if current_connection:
+                    connections.append(current_connection)
+
+                conn_type_raw = header_match.group(1).strip().lower()
+                related_info = header_match.group(2).strip()
+
+                conn_type = "other"
+                if "фио" in conn_type_raw:
+                    conn_type = "relative"
+                elif "адресу" in conn_type_raw:
+                    conn_type = "address_cohabitant"
+                elif "билету" in conn_type_raw:
+                    conn_type = "flight_companion" if "попутчик" in stripped.lower() else "travel_companion"
+
+                current_connection = {
+                    "connection_type": conn_type,
+                    "related_fio": related_info,
+                    "context": stripped,
+                    "details": []
+                }
+                continue
+
+            # Additional details under the connection
+            if current_connection and stripped.startswith("·"):
+                current_connection["details"].append(stripped)
+
+        if current_connection:
+            connections.append(current_connection)
+
+        return connections
 
     def _parse_border_events(self, content: str) -> list[dict]:
-        return []
+        """
+        Parse ПЕРЕСЕЧЕНИЯ ГРАНИЦЫ section.
+        Looks for flight numbers, dates, directions, airlines, etc.
+        """
+        events: list[dict] = []
+        if not content.strip():
+            return events
+
+        for line in content.splitlines():
+            stripped = line.strip()
+            if not stripped or ":" not in stripped:
+                continue
+
+            key, _, value = stripped.partition(":")
+            key = key.strip().lower()
+            value = value.strip()
+
+            event = {"raw": stripped}
+
+            if "дата" in key or "рейс" in key or "аэропорт" in key or "авиакомп" in key:
+                event["details"] = {key: value}
+                events.append(event)
+
+        return events
 
     def _parse_websites_section(self, content: str) -> list[str]:
-        return []
+        """
+        Parse САЙТЫ, ГДЕ НАЙДЕНЫ РЕГИСТРАЦИИ section.
+        Usually a simple list of domains/sites.
+        """
+        sites: list[str] = []
+        if not content.strip():
+            return sites
+
+        for line in content.splitlines():
+            stripped = line.strip()
+            # Skip headers and empty lines
+            if not stripped or stripped.startswith("САЙТЫ") or stripped.startswith("─"):
+                continue
+            # Basic domain-like strings
+            if "." in stripped and len(stripped) > 3 and not stripped.startswith("·"):
+                sites.append(stripped)
+
+        return sites
 
     def _parse_sources_section(self, content: str) -> list[dict]:
         """
@@ -246,3 +417,72 @@ class DossierParser:
                 })
 
         return findings
+
+    # ==================== POST-PROCESSING ====================
+
+    def _post_process(self, report: ParsedReport) -> None:
+        """
+        Fill main_* fields in main_person using frequency analysis + deduplication.
+        This runs after all sections have been parsed.
+        """
+        person = report.main_person
+
+        # Collect candidates from everywhere
+        all_phones: list[str] = list(person.phones) + list(person.extra_phones)
+        all_emails: list[str] = list(person.emails) + list(person.extra_emails)
+        all_passports: list[str] = list(person.passports) + list(person.extra_passports)
+        all_inns: list[str] = list(person.extra_inns)
+        if person.inn:
+            all_inns.append(person.inn)
+
+        # From documents
+        for doc in report.documents:
+            num = doc.get("number") or doc.get("number_raw", "")
+            if num:
+                p = normalize_passport(num)
+                if p:
+                    all_passports.append(p)
+                inn = normalize_inn(num)
+                if inn:
+                    all_inns.append(inn)
+
+        # From source findings (richest source)
+        for finding in report.source_findings:
+            data = finding.get("data", {})
+            for key, val in data.items():
+                k = key.lower()
+                if any(x in k for x in ["тел", "моб", "phone"]):
+                    p = normalize_phone(val)
+                    if p: all_phones.append(p)
+                elif "email" in k or "почта" in k:
+                    all_emails.append(val.lower())
+                elif "паспорт" in k:
+                    p = normalize_passport(val)
+                    if p: all_passports.append(p)
+                elif "инн" in k:
+                    i = normalize_inn(val)
+                    if i: all_inns.append(i)
+                elif "снилс" in k and not person.snils:
+                    person.snils = normalize_snils(val)
+
+        def most_common(items: list[str]) -> Optional[str]:
+            if not items:
+                return None
+            from collections import Counter
+            cleaned = [x for x in items if x]
+            return Counter(cleaned).most_common(1)[0][0] if cleaned else None
+
+        # Fill main fields preferring the most frequent values
+        person.main_phone = person.main_phone or most_common(all_phones)
+        person.main_email = person.main_email or most_common(all_emails)
+        person.main_passport = person.main_passport or most_common(all_passports)
+        person.main_inn = person.main_inn or most_common(all_inns)
+
+        # Final deduplication
+        person.phones = sorted(set(all_phones))
+        person.emails = sorted(set(all_emails))
+        person.passports = sorted(set(all_passports))
+        person.extra_phones = sorted(set(person.extra_phones))
+        person.extra_emails = sorted(set(person.extra_emails))
+        person.extra_passports = sorted(set(person.extra_passports))
+        person.extra_inns = sorted(set(all_inns))

@@ -29,6 +29,12 @@ class ParsedPerson(BaseModel):
     # Vehicles (if present in the report)
     vehicles: List[Dict[str, Any]] = Field(default_factory=list)
 
+    # Main (most frequent / primary) identifiers — filled during post-processing
+    main_phone: Optional[str] = None
+    main_email: Optional[str] = None
+    main_passport: Optional[str] = None
+    main_inn: Optional[str] = None
+
     # Any additional structured data
     extra: Dict[str, Any] = Field(default_factory=dict)
 
