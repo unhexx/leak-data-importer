@@ -375,16 +375,25 @@ class DossierParser:
 
     def _parse_connections_section(self, content: str) -> list[dict]:
         """
-        Improved parser for ВОЗМОЖНЫЕ СВЯЗИ with more patterns.
+        More advanced parser for ВОЗМОЖНЫЕ СВЯЗИ.
+
+        Extracts richer information about related persons and classifies
+        connection types more precisely (including family subtypes when possible).
         """
         connections: list[dict] = []
         if not content.strip():
             return connections
 
         lines = content.splitlines()
-        current_connection = None
+        current_connection: dict[str, Any] = {}
 
-        # Expanded patterns for different connection types
+        family_keywords = {
+            "мать": "parent", "отец": "parent", "мама": "parent", "папа": "parent",
+            "сын": "child", "дочь": "child",
+            "супруг": "spouse", "супруга": "spouse", "муж": "spouse", "жена": "spouse",
+            "брат": "sibling", "сестра": "sibling",
+        }
+
         connection_patterns = [
             (r"^(По ФИО|Родственники|По имени)", "relative"),
             (r"^(По адресу|Сожители|По прописке)", "address_cohabitant"),
@@ -399,57 +408,118 @@ class DossierParser:
             if not stripped:
                 continue
 
+            # Detect new connection header
             matched = False
-            for pattern, conn_type in connection_patterns:
+            for pattern, default_type in connection_patterns:
                 match = re.match(pattern, stripped, re.IGNORECASE)
                 if match:
-                    if current_connection:
+                    if current_connection and current_connection.get("related_fio"):
                         connections.append(current_connection)
 
-                    related_info = stripped[match.end():].strip(" ·:-")
+                    related = stripped[match.end():].strip(" ·:-")
+
+                    # Try to detect specific family relation
+                    conn_type = default_type
+                    for word, fam_type in family_keywords.items():
+                        if word in stripped.lower():
+                            conn_type = fam_type
+                            break
+
                     current_connection = {
                         "connection_type": conn_type,
-                        "related_fio": related_info,
+                        "related_fio": related,
                         "context": stripped,
                         "details": [],
-                        "raw": stripped
+                        "raw": stripped,
                     }
                     matched = True
                     break
 
             if not matched and current_connection:
-                # Collect additional details
+                # Extract additional structured info about the related person
+                if re.search(r"\d{2}\.\d{2}\.\d{4}", stripped):
+                    current_connection["related_birth_date"] = normalize_date(stripped)
+
+                if "паспорт" in stripped.lower():
+                    current_connection.setdefault("related_documents", []).append(stripped)
+
                 if stripped.startswith("·") or stripped.startswith("-") or ":" in stripped:
                     current_connection["details"].append(stripped)
 
-        if current_connection:
+        if current_connection and current_connection.get("related_fio"):
             connections.append(current_connection)
 
         return connections
 
     def _parse_border_events(self, content: str) -> list[dict]:
         """
-        Parse ПЕРЕСЕЧЕНИЯ ГРАНИЦЫ section.
-        Looks for flight numbers, dates, directions, airlines, etc.
+        Significantly improved parser for ПЕРЕСЕЧЕНИЯ ГРАНИЦЫ.
+
+        Extracts structured flight/border crossing events with:
+        - Date/time
+        - Flight number
+        - Airline
+        - Airports / direction
+        - Passport used
+        - Companions (if mentioned)
         """
         events: list[dict] = []
         if not content.strip():
             return events
 
+        date_re = re.compile(r"(\d{2}\.\d{2}\.\d{4}(?:\s+\d{2}:\d{2}(?::\d{2})?)?)")
+        flight_re = re.compile(r"(?:рейс|flight)\s*[:：]?\s*([A-Z0-9\-]+)", re.IGNORECASE)
+        airline_re = re.compile(r"(?:авиакомпания|airline)\s*[:：]?\s*(.+?)(?:\s*\(|$)", re.IGNORECASE)
+
+        current: dict[str, Any] = {}
+
         for line in content.splitlines():
             stripped = line.strip()
-            if not stripped or ":" not in stripped:
+            if not stripped:
                 continue
 
-            key, _, value = stripped.partition(":")
-            key = key.strip().lower()
-            value = value.strip()
+            # New event often starts with a date
+            date_match = date_re.search(stripped)
+            if date_match:
+                if current and current.get("date"):
+                    events.append(current)
+                current = {
+                    "event_type": "flight",
+                    "date": normalize_datetime(date_match.group(1)),
+                    "raw_lines": [stripped],
+                    "details": {}
+                }
 
-            event = {"raw": stripped}
+            if not current:
+                continue
 
-            if "дата" in key or "рейс" in key or "аэропорт" in key or "авиакомп" in key:
-                event["details"] = {key: value}
-                events.append(event)
+            # Flight number
+            fmatch = flight_re.search(stripped)
+            if fmatch:
+                current["flight_number"] = fmatch.group(1)
+
+            # Airline
+            amatch = airline_re.search(stripped)
+            if amatch:
+                current["airline"] = amatch.group(1).strip()
+
+            # Passport
+            if "паспорт" in stripped.lower():
+                current["passport_used"] = stripped
+
+            # Companions / poputchik
+            if "попутчик" in stripped.lower() or "сопровождающий" in stripped.lower():
+                current.setdefault("companions", []).append(stripped)
+
+            # General key:value
+            if ":" in stripped:
+                k, _, v = stripped.partition(":")
+                current["details"][k.strip()] = v.strip()
+
+            current["raw_lines"].append(stripped)
+
+        if current and current.get("date"):
+            events.append(current)
 
         return events
 
