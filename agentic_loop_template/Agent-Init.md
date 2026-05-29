@@ -57,7 +57,7 @@ CRITICAL RULES:
 
 5. Work iteratively with small, well-tested changes. Run tests frequently.
 
-6. When the task is complex, follow the structure from docs/agentic_loop/SYSTEM_PROMPT.md (Orchestrator → Coder → Tester → Debugger → Reviewer).
+6. When the task is complex, follow the structure from agentic_loop_template/SYSTEM_PROMPT.md (Orchestrator → Coder → Tester → Debugger → Reviewer).
 
 7. Always read TASK_SPECIFICATION.md (or equivalent) before starting implementation.
 ```
@@ -72,9 +72,9 @@ Use this as the first message when starting a new autonomous development session
 We are using the Agentic Loop Template located in agentic_loop_template/.
 
 Please read the following files in order:
-1. docs/agentic_loop/README.md
-2. docs/agentic_loop/SYSTEM_PROMPT.md
-3. docs/agentic_loop/Agent-Init.md
+1. agentic_loop_template/README.md
+2. agentic_loop_template/SYSTEM_PROMPT.md
+3. agentic_loop_template/Agent-Init.md
 
 Then:
 - Run the environment initialization: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
@@ -183,9 +183,9 @@ If the agent loses the environment, tell it:
 
 When starting a serious autonomous session, give the agent access to read:
 
-- `docs/agentic_loop/README.md`
-- `docs/agentic_loop/SYSTEM_PROMPT.md`
-- `docs/agentic_loop/Agent-Init.md`
+- `agentic_loop_template/README.md`
+- `agentic_loop_template/SYSTEM_PROMPT.md`
+- `agentic_loop_template/Agent-Init.md`
 - `TASK_SPECIFICATION.md` (your actual task spec)
 - `pyproject.toml`
 
