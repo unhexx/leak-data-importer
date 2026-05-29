@@ -92,7 +92,7 @@ Orchestrator → Coder → Tester → Debugger → Reviewer
 ```
 
 - Maximum **3–4 full cycles** before reaching 100% compliance.
-- After each full cycle the Reviewer updates `PROJECT_CONTEXT.md` and `SPRINTPLAN.md`.
+- After each full cycle the Reviewer updates `PROJECT_CONTEXT.md`, `SPRINTPLAN.md`, **and creates `last_agent_completion.json`** (plus archive in `reports/<year>/`) capturing the "Task Completed" Markdown + metadata (see DEVELOPMENT_STANDARDS.md).
 
 ### Inner Loop (micro-loop inside each role)
 
@@ -187,6 +187,8 @@ Extend the registry for each new project.
 Every agent message **must** end with exactly one JSON object and nothing after it.
 
 Full schema is in `HANDOFF_SCHEMA.md`.
+
+When status = "DONE", the Reviewer must also create the last_agent_completion.json artifact (temp + archived copy) as defined in DEVELOPMENT_STANDARDS.md. Reference it in the final handoff under context_updates or artifacts.
 
 ---
 

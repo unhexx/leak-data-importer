@@ -117,6 +117,59 @@ At the beginning of every cycle, after running `Agent-Init.ps1`, ensure the curr
 
 ---
 
+## 7. Last Agent Completion Result File (New Artifact)
+
+**Purpose:** Capture the human-readable "Task Completed" Markdown output (the nice summary the agent produces in the Blackbox chat when finishing a task) together with structured metadata. This provides persistence and a machine-readable record of every major task completion.
+
+### Temporary File (always the latest)
+- Location: Project root → `last_agent_completion.json`
+- This file is **overwritten** on every task/cycle completion.
+- It is the "конкретный временный файл" referenced in requirements.
+
+### Archived Copy
+- Location: `reports/<year>/` (e.g. `reports/2026/`)
+- Filename pattern: `completion_<YYYYMMDD_HHMMSS>_<role>_<cycle>.json`
+  - Example: `completion_20260529_143022_Reviewer_5.json`
+- The directory must be created automatically by the agent if it does not exist (`os.makedirs(..., exist_ok=True)` in Python or equivalent).
+
+### JSON Structure (pretty-printed, UTF-8)
+```json
+{
+  "project_stage": "Phase 3 — Entity Resolution & Deduplication (or current phase from PROJECT_CONTEXT / SPRINTPLAN)",
+  "tasks": [
+    "Task 3.1 - Implement person linker with fuzzy strategies",
+    "..."
+  ],
+  "result_markdown": "# Task Completed\n\n## Summary\n...\n\n## What was delivered\n- ...\n\n## Next steps\n...",
+  "agent_role": "Reviewer",
+  "completed_at": "2026-05-29T14:30:22+03:00",
+  "cycle_number": 5,
+  "status": "DONE"
+}
+```
+
+- `result_markdown` must contain the exact (or minimally adapted) "Task Completed" Markdown block the agent would output in the chat for the human.
+- All other fields are mandatory.
+
+### When to Create the File
+- **Primary trigger:** The **Reviewer** role, when it decides the task/cycle is **DONE** and is about to output the "Task Completed" Markdown in the chat.
+- The agent must:
+  1. Prepare the nice Markdown summary (as it normally would for the human).
+  2. Build the JSON object with the metadata above.
+  3. Write `last_agent_completion.json` in the project root.
+  4. Write the identical archive copy in `reports/<year>/` (creating the directory if needed).
+
+### Writing Rules (strict)
+- Follow the existing "File Encoding (UTF-8 by Default)" section in this document.
+- **Strongly preferred:** Python with explicit `encoding="utf-8"` and `ensure_ascii=False` for JSON.
+- PowerShell: always use `-Encoding utf8` with `Set-Content` / `Out-File`.
+- Never use bare redirection or `open()` without encoding.
+
+### Enforcement
+- The **Reviewer** is responsible for creating this file as part of completing a task.
+- Failure to create the file (or creating it with incorrect encoding / missing fields) is treated as a process violation.
+- Record any issues in `SELF_IMPROVEMENT_LOG.md`.
+
 **This document is the single source of truth for development standards in this project.**
 
 When in doubt, re-read this file. The Reviewer will hold all roles accountable to these standards.
