@@ -133,7 +133,7 @@ If any answer is "no" → **do not** set status to DONE.
 
 ---
 
-## GIT & COMMIT RULES (MANDATORY)
+## GIT, COMMIT & CODE COMMENT RULES (MANDATORY)
 
 - Always work on a feature branch: `feature-{{ FEATURE_NAME }}`
 - Set git identity once as a real developer:
@@ -145,6 +145,12 @@ If any answer is "no" → **do not** set status to DONE.
   - Written in natural Russian
   - Written in the voice of a real human mid/senior developer
   - **Never** contain words: AI, LLM, agent, MiniMax, Grok, Claude, нейросеть, "as an assistant", etc.
+
+- **Code Comments Rule (see DEVELOPMENT_STANDARDS.md for full details):**
+  - All comments and docstrings in source code must be written in natural Russian as a real developer.
+  - English comments and AI-style language are strictly forbidden.
+  - The Reviewer will reject any cycle that violates this rule.
+
 - Commit after every meaningful change (new module, passing tests, important fix).
 - At the end of a successful Reviewer cycle the agent must execute:
   ```powershell

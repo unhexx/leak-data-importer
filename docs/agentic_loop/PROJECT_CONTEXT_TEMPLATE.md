@@ -1,130 +1,115 @@
 # PROJECT_CONTEXT.md
 
-> **Источник истины:** `{{ TASK_SPECIFICATION.md }}`  
-> Этот файл обновляется Orchestrator'ом (статус) и Reviewer'ом (лог саморазвития).  
-> Максимальный объём: ~3000 токенов. При превышении — сжать старые записи.
+> **Source of Truth:** `{{ TASK_SPECIFICATION.md }}`  
+> This file is updated by the **Orchestrator** (current status) and the **Reviewer** (self-improvement log).  
+> Maximum size: ~3000 tokens. Compress older entries when necessary.  
+> All content must be in English.
 
 ---
 
-## Идентификация проекта
+## Project Identification
 
-| Параметр | Значение |
-|----------|----------|
-| **Проект** | `{{ Название проекта }}` |
-| **Цель** | `{{ Краткое описание цели }}` |
-| **Стек** | `{{ Python 3.11 / Pydantic v2 / SQLAlchemy 2.0 / PostgreSQL 15 / pytest }}` |
-| **Ветка** | `feature-{{ название-фичи }}` |
-| **Git user** | `{{ Имя Фамилия }} <{{ email@domain.ru }}>` |
-
----
-
-## Текущий статус
-
-| Поле | Значение |
-|------|----------|
-| **Цикл №** | `{{ 0 }}` |
-| **Текущая фаза** | `{{ planning }}` |
-| **Текущая роль** | `{{ Orchestrator }}` |
-| **Статус** | `IN_PROGRESS` |
-| **Уверенность** | `{{ 0.0 }}` |
-| **Последний коммит** | `{{ "" }}` |
-| **Дата обновления** | `{{ YYYY-MM-DD HH:MM }}` |
+| Parameter       | Value                                      |
+|-----------------|--------------------------------------------|
+| **Project**     | `{{ Project Name }}`                       |
+| **Goal**        | `{{ Short description of the project goal }}` |
+| **Tech Stack**  | `{{ Python 3.11 / Pydantic v2 / SQLAlchemy 2.0 / PostgreSQL 15 / pytest }}` |
+| **Current Branch** | `feature-{{ feature-name }}`            |
+| **Git User**    | `{{ Real Developer Name }} <{{ email@domain.com }}>` |
 
 ---
 
-## Ключевые файлы
+## Current Status
+
+| Field                  | Value                                      |
+|------------------------|--------------------------------------------|
+| **Cycle Number**       | `{{ 0 }}`                                  |
+| **Current Phase**      | `{{ planning }}`                           |
+| **Active Role**        | `{{ Orchestrator }}`                       |
+| **Status**             | `IN_PROGRESS`                              |
+| **Confidence**         | `{{ 0.0 }}`                                |
+| **Last Commit**        | `{{ "" }}`                                 |
+| **Last Updated**       | `{{ YYYY-MM-DD HH:MM }}`                   |
+
+---
+
+## Key Files
 
 ```
 {{ project_root }}/
-├── {{ TASK_SPECIFICATION.md }}   ← источник истины
-├── PROJECT_CONTEXT.md            ← этот файл
-├── SPRINTPLAN.md                 ← план спринта
-├── AGENT_ROLES.md                ← инструкции по ролям
-├── HANDOFF_SCHEMA.md             ← схема передачи управления
-├── TOOLS_REGISTRY.md             ← реестр инструментов
-├── SYSTEM_PROMPT.md              ← системный промпт
-├── input/                        ← примеры входных данных
+├── {{ TASK_SPECIFICATION.md }}   ← source of truth
+├── PROJECT_CONTEXT.md            ← this file (living memory + self-improvement)
+├── SPRINTPLAN.md                 ← current sprint plan
+├── AGENT_ROLES.md                ← role instructions
+├── HANDOFF_SCHEMA.md             ← role transition contract
+├── TOOLS_REGISTRY.md             ← available tools
+├── SYSTEM_PROMPT.md              ← main system prompt
+├── input/                        ← sample input data
 │   ├── example_1.txt
 │   └── example_2.txt
 ├── src/
-│   ├── __init__.py
-│   ├── models.py
-│   ├── normalizers.py
-│   ├── parser.py
-│   ├── dbmodels.py
-│   └── main.py
 ├── tests/
-│   ├── conftest.py
-│   ├── test_models.py
-│   ├── test_normalizers.py
-│   ├── test_parser.py
-│   ├── test_db_insert.py
-│   └── test_integration.py
-├── migrations/
-│   └── ...
 ├── scripts/
 │   └── setup_env.ps1
 ├── pyproject.toml
-├── README.md
-└── USAGE.md
+└── README.md
 ```
 
 ---
 
-## Краткая история циклов
+## Cycle History (Self-Improvement Log)
 
-| Цикл | Роль | Фаза | Статус | Что сделано |
-|------|------|------|--------|-------------|
-| 0 | Orchestrator | planning | — | *(заполнить после первого цикла)* |
-
----
-
-## Ключевые решения и обоснования
-
-> Архитектурные и процессные решения, принятые в ходе разработки.
-
-- *(заполнить по мере принятия решений)*
+| Cycle | Role         | Phase    | Status     | Key Outcomes |
+|-------|--------------|----------|------------|--------------|
+| 0     | Orchestrator | planning | —          | *(fill after first cycle)* |
 
 ---
 
-## Известные ограничения и риски
+## Key Decisions & Rationale
 
-- *(заполнить в первом цикле)*
+> Architectural and process decisions made during development.
 
----
-
-## Agent Performance Self-Improvement Log
-
-> Ведётся Reviewer'ом. Каждая запись — итог одного полного внешнего цикла.
+- *(to be filled during work)*
 
 ---
 
-### Цикл 0 — Инициализация
+## Known Limitations and Risks
 
-*(Эта секция будет заполнена Reviewer'ом после завершения первого цикла.)*
-
-**Что сработало хорошо:**
-- 
-
-**Что было неэффективно:**
-- 
-
-**Новые постоянные правила (из lessons_learned):**
-1. 
-
-**Рекуррентные проблемы (из process_tags):**
-- 
+- *(to be filled in the first cycle)*
 
 ---
 
-## Постоянные правила (применяются всегда)
+## Agentic Loop Self-Improvement Log
 
-> Эти правила кристаллизовались из уроков прошлых циклов. Следовать неукоснительно.
+> Maintained by the **Reviewer** after each completed external cycle.  
+> Focus: How effectively the agentic process itself is working.
 
-1. Перед каждым циклом перечитывать `{{ TASK_SPECIFICATION.md }}` полностью.
-2. Не коммитить сломанный код — только рабочие состояния.
-3. `issues_found` в handoff JSON — не пропускать ни одну найденную проблему.
-4. При `confidence < 0.7` — не передавать управление следующему агенту, сначала устранить неопределённость.
-5. Тесты на DB roundtrip обязательны начиная с первого цикла.
+### Critical Rule — Code Comments and Documentation (Strict)
 
-*(дополнять по мере кристаллизации новых правил)*
+When **any role** (especially Coder, Debugger, or Reviewer) modifies source code:
+
+- All comments, docstrings, and documentation inside the code **must be written in natural Russian**.
+- Write as a real mid/senior human developer who has been actively working on this project for several months.
+- Use natural, professional Russian language.
+- **Never** mention AI, LLM, agent, MiniMax, Grok, Claude, "neural network", "as an assistant", or any other indication that the changes were generated or assisted by an AI system.
+- The same rule applies to git commit messages.
+
+The Reviewer is responsible for enforcing this rule before approving a cycle.
+
+---
+
+## Permanent Rules (Crystallized from Experience)
+
+> These rules must be followed strictly. They are updated by the Reviewer when new lessons are learned.
+
+1. Re-read the full `{{ TASK_SPECIFICATION.md }}` at the beginning of every cycle.
+2. Never commit broken code — only working, tested states.
+3. Always populate `issues_found` in handoff JSON. Do not skip discovered problems.
+4. If confidence is below 0.7 — do not hand off to the next role until uncertainty is resolved.
+5. Database roundtrip tests are mandatory starting from the first cycle.
+
+*(Add new permanent rules as they are discovered)*
+
+---
+
+*(The Reviewer appends detailed cycle reviews below after each full loop)*
