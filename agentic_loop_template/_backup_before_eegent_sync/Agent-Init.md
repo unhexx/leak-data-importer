@@ -29,6 +29,7 @@ This script will:
 - Create and activate the local `.venv`
 - Install all dependencies from `pyproject.toml`
 - Install the `posh-bash-chaining` tool into your PowerShell profile (with Blackbox-friendly settings)
+- **Force UTF-8 as default encoding** for the current session (prevents mojibake in handoff JSONs on Russian Windows)
 - Set helpful environment variables
 - Print the exact text you should give to the Blackbox agent
 
@@ -53,11 +54,14 @@ CRITICAL RULES:
 
 3. For shell commands that use chaining, prefer using the posh-bash-chaining functions or run commands via the bootstrap.
 
-4. All git commit messages MUST be written in natural Russian, as a real human mid/senior developer. Never mention AI, LLM, agent, MiniMax, Grok, or "as an assistant" in commits.
+4. Read and strictly follow `DEVELOPMENT_STANDARDS.md`:
+   - All code comments, docstrings and documentation MUST be written in natural Russian, as a real human mid/senior developer.
+   - Never use English comments or AI-style language.
+   - All git commit messages must be in natural Russian, written as a real developer. Never mention AI, LLM, agent, MiniMax, Grok, etc.
 
 5. Work iteratively with small, well-tested changes. Run tests frequently.
 
-6. When the task is complex, follow the structure from docs/agentic_loop/SYSTEM_PROMPT.md (Orchestrator → Coder → Tester → Debugger → Reviewer).
+6. When the task is complex, follow the structure from agentic_loop_template/SYSTEM_PROMPT.md (Orchestrator → Coder → Tester → Debugger → Reviewer).
 
 7. Always read TASK_SPECIFICATION.md (or equivalent) before starting implementation.
 ```
@@ -66,23 +70,45 @@ CRITICAL RULES:
 
 ## Step 3: First Message to the Agent (Copy-Paste)
 
-Use this as the first message when starting a new autonomous development session:
+### Best way (recommended)
+Run this command — it generates a strong, ready-to-use prompt based on your `TODO.md`:
 
+```powershell
+powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
 ```
-We are using the Agentic Loop Template located in agentic_loop_template/.
 
-Please read the following files in order:
-1. docs/agentic_loop/README.md
-2. docs/agentic_loop/SYSTEM_PROMPT.md
-3. docs/agentic_loop/Agent-Init.md
+### Generate a reusable template with placeholders (for new projects)
+When you want to copy `agentic_loop_template/` to another project, generate a clean template:
 
-Then:
-- Run the environment initialization: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
-- Activate the venv
-- Read the main task specification (TASK_SPECIFICATION.md or equivalent)
-- Start acting as ORCHESTRATOR and begin the agentic loop.
+```powershell
+powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1 -GenerateTemplate -OutputFile starter_prompt_template.md
+```
 
-Use natural Russian developer-style commit messages only.
+Then replace the `{{ PLACEHOLDERS }}` with your project data.
+
+### Manual example (filled version)
+```
+# Agentic Development Loop — Session Initialization (Template v2.1)
+
+**Project:** leak-data-importer
+
+## Current Task / Specification
+[paste content of TODO.md or TASK_SPECIFICATION.md here]
+
+## MANDATORY FIRST ACTIONS
+1. Run: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
+2. Activate venv
+3. Complete the Pre-Flight Checklist in agentic_loop_template/SYSTEM_PROMPT.md
+
+## REQUIRED READING ORDER
+1. agentic_loop_template/README.md
+2. agentic_loop_template/SYSTEM_PROMPT.md (version 2.1)
+3. agentic_loop_template/AGENT_ROLES.md
+4. agentic_loop_template/HANDOFF_SCHEMA.md
+5. Current specification file
+
+Start as ORCHESTRATOR (temperature 0.0). Follow the full role cycle with PLAN → ACT → REFLECT discipline.
+All git commits must be in natural Russian, written as a real human developer.
 ```
 
 ---
@@ -183,9 +209,9 @@ If the agent loses the environment, tell it:
 
 When starting a serious autonomous session, give the agent access to read:
 
-- `docs/agentic_loop/README.md`
-- `docs/agentic_loop/SYSTEM_PROMPT.md`
-- `docs/agentic_loop/Agent-Init.md`
+- `agentic_loop_template/README.md`
+- `agentic_loop_template/SYSTEM_PROMPT.md`
+- `agentic_loop_template/Agent-Init.md`
 - `TASK_SPECIFICATION.md` (your actual task spec)
 - `pyproject.toml`
 

@@ -2,6 +2,8 @@
 
 > This registry defines all tools available to the agent during the loop.
 > Extend this file when adding new capabilities to your local runner.
+>
+> **Important:** When using any editing or code-generation tools, you **must** follow the rules in `DEVELOPMENT_STANDARDS.md`, especially the requirement to write all code comments and docstrings in natural Russian as a real human developer.
 
 ---
 
