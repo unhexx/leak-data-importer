@@ -33,6 +33,8 @@ IMMEDIATE TASKS (always in this order at the start of a cycle):
 2. ACT (use powershell tool)
    - Run the environment bootstrap script if not done yet.
    - Inspect repository state.
+   - **When writing handoff JSON or any text files, always use UTF-8** (see DEVELOPMENT_STANDARDS.md → "File Encoding").
+     Preferred: Use Python with `encoding="utf-8"`.
    - Commit updated context files with a natural Russian commit message (as a real human developer).
 
 3. REFLECT
@@ -73,6 +75,12 @@ Focus:
 
 After implementation:
 - Run the environment bootstrap if needed
+- **When creating handoff JSON or other text files, always write them in UTF-8** (see DEVELOPMENT_STANDARDS.md).
+  Recommended pattern:
+  ```python
+  with open("handoff_coder_to_tester.json", "w", encoding="utf-8") as f:
+      json.dump(handoff, f, ensure_ascii=False, indent=2)
+  ```
 - Commit with a natural Russian developer commit message
 - Hand off to Tester
 ```

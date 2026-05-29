@@ -151,6 +151,12 @@ If any answer is "no" → **do not** set status to DONE.
   - English comments and AI-style language are strictly forbidden.
   - The Reviewer will reject any cycle that violates this rule.
 
+- **File Encoding Rule (see DEVELOPMENT_STANDARDS.md):**
+  - All text files (especially handoff JSONs) must be written using UTF-8 encoding.
+  - Preferred method: Python `open(..., encoding="utf-8")`.
+  - In PowerShell: always use `-Encoding utf8` with `Set-Content` / `Out-File`.
+  - Never use bare redirection (`>`) or Python `open()` without explicit encoding when writing important files.
+
 - Commit after every meaningful change (new module, passing tests, important fix).
 - At the end of a successful Reviewer cycle the agent must execute:
   ```powershell

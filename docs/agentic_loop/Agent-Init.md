@@ -29,6 +29,7 @@ This script will:
 - Create and activate the local `.venv`
 - Install all dependencies from `pyproject.toml`
 - Install the `posh-bash-chaining` tool into your PowerShell profile (with Blackbox-friendly settings)
+- **Force UTF-8 as default encoding** for the current session (prevents mojibake in handoff JSONs on Russian Windows)
 - Set helpful environment variables
 - Print the exact text you should give to the Blackbox agent
 

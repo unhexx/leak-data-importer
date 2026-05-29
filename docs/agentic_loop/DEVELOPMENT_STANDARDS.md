@@ -68,6 +68,50 @@ When writing or modifying any source code:
 
 ---
 
+## 6. File Encoding (UTF-8 by Default) — Critical for Stability
+
+**This rule exists to prevent mojibake and broken handoff files on Windows (especially Russian systems).**
+
+All text files (including handoff JSONs, logs, reports, etc.) **must** be written and read using UTF-8.
+
+### Mandatory Rules When Writing Files
+
+1. **Preferred method — Python (most reliable):**
+   ```python
+   import json
+   with open("handoff_orchestrator_to_coder.json", "w", encoding="utf-8") as f:
+       json.dump(data, f, ensure_ascii=False, indent=2)
+   ```
+
+2. **When using PowerShell:**
+   - Always specify encoding explicitly:
+     ```powershell
+     Set-Content -Path "file.json" -Value $json -Encoding utf8
+     "text" | Out-File -FilePath "file.txt" -Encoding utf8
+     ```
+   - Never rely on bare `>` or `>>` redirection without setting defaults first.
+
+3. **Never** use:
+   - Bare `echo "text" > file.json`
+   - Python `open("file", "w")` without `encoding="utf-8"`
+   - PowerShell redirection without explicit UTF-8
+
+### When Reading Files
+
+- PowerShell: `Get-Content "file.json" -Encoding utf8`
+- Python: `open("file.json", encoding="utf-8")`
+
+### Enforcement
+
+- The **Reviewer** must check that all handoff JSON files and important text outputs are valid UTF-8.
+- If mojibake appears in handoff files or logs, the Reviewer should treat it as a process violation and request correction.
+- Record any encoding-related problems in `SELF_IMPROVEMENT_LOG.md`.
+
+**Recommendation for the Orchestrator:**
+At the beginning of every cycle, after running `Agent-Init.ps1`, ensure the current PowerShell session has UTF-8 defaults enabled.
+
+---
+
 **This document is the single source of truth for development standards in this project.**
 
 When in doubt, re-read this file. The Reviewer will hold all roles accountable to these standards.
