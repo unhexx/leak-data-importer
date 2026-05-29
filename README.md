@@ -98,6 +98,9 @@ This project does **not** distribute or host any leaked data. Users are fully re
 - `orchestrator_start_prompt_cycle6_phase5.md` — для текущего состояния
 - `orchestrator_start_prompt_template.md` — универсальный шаблон для будущих циклов
 
+**Важно при возобновлении работы:**
+Если работа была прервана и в корне проекта присутствует файл `last_agent_completion.json`, то для продолжения используйте именно `orchestrator_resume_prompt.md`. Этот промпт специально адаптирован под анализ результата предыдущего агента и восстановление контекста.
+
 ## Windows helpers
 
 Для комфортной работы в классической Windows PowerShell в репозитории есть инструмент:
