@@ -44,14 +44,15 @@ class PersonLinker:
 
     # Strategy weights (must sum to 1.0)
     STRATEGY_WEIGHTS = {
-        MatchStrategy.EXACT_PASSPORT: 0.35,
+        MatchStrategy.EXACT_PASSPORT: 0.40,
         MatchStrategy.EXACT_SNILS: 0.25,
         MatchStrategy.EXACT_INN: 0.20,
-        MatchStrategy.EXACT_PHONE: 0.10,
-        MatchStrategy.FUZZY_FIO: 0.15,
-        MatchStrategy.FUZZY_PHONE: 0.05,
-        MatchStrategy.FUZZY_BIRTHDATE: 0.05,
+        MatchStrategy.EXACT_PHONE: 0.05,
+        MatchStrategy.FUZZY_FIO: 0.05,
+        MatchStrategy.FUZZY_PHONE: 0.025,
+        MatchStrategy.FUZZY_BIRTHDATE: 0.025,
     }
+    # Total: 0.40 + 0.25 + 0.20 + 0.05 + 0.05 + 0.025 + 0.025 = 1.0
 
     def __init__(
         self,
@@ -110,7 +111,6 @@ class PersonLinker:
             best_score = 0.0
 
             for cluster in clusters:
-                # Compare against representative of the cluster
                 rep = cluster[0]
                 score, _ = self._similarity_score_with_strategies(p1, rep)
 
@@ -123,7 +123,6 @@ class PersonLinker:
             else:
                 clusters.append([p1])
 
-        # Filter and format results
         results: List[Dict[str, Any]] = []
         for cluster in clusters:
             if len(cluster) > 1:
@@ -163,6 +162,14 @@ class PersonLinker:
         if shared_phones:
             strategy_scores[MatchStrategy.EXACT_PHONE] = 1.0
         
+        # Strong exact match - return 1.0 immediately
+        if (
+            MatchStrategy.EXACT_PASSPORT in strategy_scores or
+            MatchStrategy.EXACT_SNILS in strategy_scores or
+            MatchStrategy.EXACT_INN in strategy_scores
+        ):
+            return 1.0, strategy_scores
+        
         # Fuzzy FIO (using token_sort_ratio for Russian names)
         if p1["fio"] and p2["fio"]:
             fio_score = fuzz.token_sort_ratio(p1["fio"], p2["fio"]) / 100.0
@@ -182,7 +189,7 @@ class PersonLinker:
             if birth_score > 0:
                 strategy_scores[MatchStrategy.FUZZY_BIRTHDATE] = birth_score
         elif not self.require_birth_date and not p1.get("snils"):
-            # No birth date but no strong ID either - use moderate score
+            # No birth date but no strong ID either
             strategy_scores[MatchStrategy.FUZZY_BIRTHDATE] = 0.5
 
         # Calculate weighted confidence score
@@ -203,7 +210,6 @@ class PersonLinker:
         if not phones1 or not phones2:
             return 0.0
         
-        # Check for partial matches (last 6 digits)
         def normalize(phone: str) -> str:
             return phone.replace(" ", "").replace("-", "")[-6:]
         
@@ -222,13 +228,11 @@ class PersonLinker:
         
         diff = abs((d1 - d2).days)
         if diff <= self.birth_date_tolerance_days:
-            # Linear falloff: 1.0 at 0 days, 0.5 at tolerance days
             return 1.0 - (diff / self.birth_date_tolerance_days) * 0.5
         return 0.0
 
     def _format_cluster_result(self, cluster: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Format cluster result with strategy details."""
-        # Calculate pairwise scores
         scores = []
         strategies_used: Dict[str, List[str]] = {}
         

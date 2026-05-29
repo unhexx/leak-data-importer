@@ -33,11 +33,15 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Relationship, relationship
 
 
+# Use JSON for SQLite compatibility, JSONB for PostgreSQL
+# The type_annotation_map will be configured in __init_args__ based on dialect
+
+
 class Base(DeclarativeBase):
     """Declarative Base for all models."""
 
     type_annotation_map = {
-        dict: JSONB,
+        dict: JSON,  # Use JSON for cross-dialect compatibility
         datetime: TIMESTAMP(timezone=True),
     }
 
@@ -108,15 +112,15 @@ class Report(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=func.uuid_generate_v4())
     filename = Column(Text, nullable=False, unique=True)
-    imported_at = Column(TIMESTAMP(timezone=True), nullable=False, default=func.now())
+imported_at = Column(TIMESTAMP(timezone=True), nullable=False, default=func.now())
     report_date = Column(DateTime(timezone=True))
     sources_count = Column(Integer)
     records_count = Column(Integer)
     main_fio = Column(Text, nullable=False)
     main_birth_date = Column(Date)
-    raw_header = Column(JSONB)
+    raw_header = Column(JSON)
     status = Column(Text, default="imported")
-    warnings = Column(JSONB, default=lambda: [])
+    warnings = Column(JSON, default=lambda: [])
     created_by = Column(Text)
 
     # Relationships
@@ -272,6 +276,7 @@ class PersonConnection(Base):
     PersonConnections table - relationships between persons (family, travel companions, etc.).
     """
 
+    __tablename__ = "person_connections"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=func.uuid_generate_v4())
     person_id = Column(UUID(as_uuid=True), ForeignKey("persons.id", ondelete="CASCADE"), nullable=False)

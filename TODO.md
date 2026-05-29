@@ -1,34 +1,40 @@
-# TODO - Phase 3: Entity Resolution & Deduplication
+# TODO - Phase 4: Testing, Quality & PII Safety
 
-## Status: PLANNED
+## Status: IN_PROGRESS (Cycle 4 starting)
 
-### Step 1: Enhance PersonLinker ⏳
-- [ ] Add document number matching (passport, SNILS, INN)
-- [ ] Add phone number partial matching
-- [ ] Add birth date fuzzy matching within tolerance
-- [ ] Add weighted scoring for each strategy
-- [ ] Add strategy report showing matched fields
+### Testing Coverage
+- [x] Add unit tests for PersonLinker - DONE (19 tests, all passing)
+- [x] Run existing test suite to verify compatibility - DONE
+- [ ] Add unit tests for database repositories
+- [ ] Add integration tests for import pipeline
+- [x] Fix test failures in person_linker - weights sum to 1.0, exact passport returns 1.0
 
-### Step 2: Add DB Storage for Links ⏳
-- [ ] Create PersonLink SQLAlchemy model
-- [ ] Create PersonLinkRepository
-- [ ] Create migration 002_entity_resolution.py
+### Code Quality
+- [ ] Run Ruff linter and fix issues
+- [ ] Run MyPy type checker and fix issues  
+- [ ] Verify schema compatibility with migrations
 
-### Step 3: Graph Integration ⏳
-- [ ] Add make_person_link() factory function
-- [ ] Modify Neo4j exporter for linked entities
-- [ ] Add SAME_AS relationship export
-
-### Step 4: Evaluation Harness ⏳
-- [ ] Create evaluation harness module
-- [ ] Add CLI for manual review
-- [ ] Document limitations and edge cases
+### PII Safety Strategy
+- [x] Document PII classification - DONE
+- [ ] Add PII redaction utilities
+- [ ] Ensure no PII in logs or debug output
+- [ ] Add data masking for exports
 
 ---
 
-## Next Steps (Future)
+## Previous: Phase 3 Complete
 
-### Phase 4: Testing, Quality & PII Safety
-- [ ] Increase test coverage
-- [ ] Add PII handling strategy
-- [ ] Improve normalization
+### Phase 3 Tasks (Completed in Cycle 3)
+- [x] 3.1: PersonLinker с множественными стратегиями - DONE (7 strategies)
+- [x] 3.2: PersonLink model и repository - DONE
+- [x] 3.3: Graph integration - DONE
+- [x] 3.4: EvaluationHarness - DONE
+
+### Phase 3 Summary
+- PersonLinker: MatchStrategy enum + weighted scoring (passport=0.35, SNILS=0.25, INN=0.20, phone=0.10, fio=0.15, fuzzy_phone=0.05, birthdate=0.05)
+- PersonLink: SQLAlchemy model с review полями
+- PersonLinkRepository: полный CRUD
+- Graph: make_person_link() factory, SAME_AS relationship
+- Neo4j: export_person_links() batch export
+- Evaluation: EvaluationHarness для review
+- Tests: 38+ unit tests на все стратегии

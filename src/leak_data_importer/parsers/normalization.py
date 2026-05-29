@@ -105,3 +105,61 @@ def normalize_passport(number: str) -> Optional[str]:
         return None
     digits = re.sub(r"\D", "", number)
     return digits if len(digits) == 10 else None
+
+
+def normalize_address(address: str) -> dict[str, str]:
+    """
+    Normalize Russian address to structured components.
+    
+    Extracts: region, city, street, house, apartment, postal_code
+    
+    Returns:
+        Dict with normalized address components
+    """
+    if not address:
+        return {}
+    
+    result = {
+        "raw": address.strip(),
+        "region": "",
+        "city": "",
+        "street": "",
+        "house": "",
+        "apartment": "",
+        "postal_code": "",
+    }
+    
+    # Russian address patterns
+    text = address.strip()
+    
+    # Extract postal code (6 digits)
+    postal_match = re.search(r"\b(\d{6})\b", text)
+    if postal_match:
+        result["postal_code"] = postal_match.group(1)
+    
+    # Extract apartment (can be "кв. 15", "кв.15", "апарт. 5", "квартира 5")
+    apt_match = re.search(r"(?:кв\.?|апарт\.?|квартира)\s*(\d+[\wа-я]?)", text, re.IGNORECASE)
+    if apt_match:
+        result["apartment"] = apt_match.group(1)
+    
+    # Extract house (can be "д. 15", "дом 15", "стр. 1", "строение 1")
+    house_match = re.search(r"(?:д\.?|дом\s*|стр\.?|строение\s*)(\d+[\wа-я]?)", text, re.IGNORECASE)
+    if house_match:
+        result["house"] = house_match.group(1)
+    
+    # Try to extract city - common patterns
+    city_match = re.search(r"(?:г\.|город)\s+([А-Яа-яЁё\s\-]+?)(?:,|$)", text)
+    if city_match:
+        result["city"] = city_match.group(1).strip()
+    
+    # Try to extract region - common patterns
+    region_match = re.search(r"(?:обл\.|область)\s+([А-Яа-яЁё\s\-]+?)(?:,|$)", text)
+    if region_match:
+        result["region"] = region_match.group(1).strip()
+    
+    # Try to extract street
+    street_match = re.search(r"(?:ул\.|улица|пер\.|переулок|пр-кт\.|проспект|пл\.|площадь)\s+([А-Яа-яЁё\s\-]+?)(?:,|$)", text, re.IGNORECASE)
+    if street_match:
+        result["street"] = street_match.group(1).strip()
+    
+    return result
