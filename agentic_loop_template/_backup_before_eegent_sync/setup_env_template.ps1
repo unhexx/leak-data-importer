@@ -50,19 +50,19 @@ if (-not (Test-Path $activateScript)) {
 . $activateScript
 Write-Host "  ✓ Окружение активировано." -ForegroundColor Green
 
-# ─── 4. Обновление pip ────────────────────────────────────────────────────────
+# ─── 4. Обновление pip (через venv python) ─────────────────────────────────────
 Write-Host "`n[4/6] Обновление pip..." -ForegroundColor Yellow
-python -m pip install --upgrade pip --quiet
+& $VenvPython -m pip install --upgrade pip --quiet 2>&1 | Out-Null
 Write-Host "  ✓ pip обновлён." -ForegroundColor Green
 
 # ─── 5. Установка зависимостей ────────────────────────────────────────────────
 Write-Host "`n[5/6] Установка зависимостей из $RequirementsFile..." -ForegroundColor Yellow
 if (Test-Path $RequirementsFile) {
-    python -m pip install -r $RequirementsFile --quiet
+    & $VenvPython -m pip install -r $RequirementsFile --quiet 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { Write-Error "Ошибка установки зависимостей."; exit 1 }
     Write-Host "  ✓ Зависимости установлены." -ForegroundColor Green
 } elseif (Test-Path "pyproject.toml") {
-    python -m pip install -e ".[dev]" --quiet
+    & $VenvPython -m pip install -e ".[dev]" --quiet 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) { Write-Error "Ошибка установки через pyproject.toml."; exit 1 }
     Write-Host "  ✓ Установлено через pyproject.toml." -ForegroundColor Green
 } else {
