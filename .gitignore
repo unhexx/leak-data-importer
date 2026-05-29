@@ -98,10 +98,7 @@ config/local.yaml
 # are intentionally committed with high-quality instructions.
 # After initial seeding, teams/agents may decide whether to keep tracking the live versions.
 # starter_prompt*.md
-# docs/agentic_loop/starter_prompt*.md
-# docs/agentic_loop/PROJECT_CONTEXT.md
-# docs/agentic_loop/SPRINTPLAN.md
-# docs/agentic_loop/SELF_IMPROVEMENT_LOG.md
+# (Removed: docs/agentic_loop/ was a duplicate of agentic_loop_template/ and has been deleted)
 
 # Hidden context directories and debug/analysis outputs from development
 .context/

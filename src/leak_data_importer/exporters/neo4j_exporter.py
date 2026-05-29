@@ -68,6 +68,71 @@ def setup_neo4j_constraints(
     return results
 
 
+def export_person_links(
+    links: list[dict],
+    uri: str,
+    user: str,
+    password: str,
+    database: str = "neo4j",
+    batch_size: int = 1000,
+) -> dict:
+    """
+    Экспортирует связи SAME_AS между персонами в Neo4j.
+    
+    Args:
+        links: Список словарей с полями:
+            - from_id: ID первой персоны
+            - to_id: ID второй персоны  
+            - confidence: Уверенность (0.0-1.0)
+            - match_strategy: Стратегия совпадения
+        uri: Neo4j URI
+        user: Имя пользователя Neo4j
+        password: Пароль Neo4j
+        database: Имя базы данных (по умолчанию neo4j)
+        batch_size: Размер батча
+        
+    Returns:
+        dict с количеством созданных связей
+    """
+    if GraphDatabase is None:
+        raise ImportError("neo4j package is required. Install with: pip install neo4j")
+
+    driver = GraphDatabase.driver(uri, auth=(user, password))
+    rels_created = 0
+
+    with driver.session(database=database) as session:
+        for i in range(0, len(links), batch_size):
+            batch = links[i:i + batch_size]
+            records = []
+
+            for link in batch:
+                records.append({
+                    "from_id": link["from_id"],
+                    "to_id": link["to_id"],
+                    "confidence": link.get("confidence", 0.8),
+                    "match_strategy": link.get("match_strategy", "unknown"),
+                })
+
+            query = """
+                UNWIND $records AS record
+                MATCH (a {id: record.from_id})
+                MATCH (b {id: record.to_id})
+                MERGE (a)-[r:SAME_AS]->(b)
+                SET r.confidence = record.confidence,
+                    r.match_strategy = record.match_strategy
+                RETURN count(r) AS cnt
+            """
+            session.run(query, records=records)
+            rels_created += len(batch)
+
+    driver.close()
+
+    return {
+        "relationships_created": rels_created,
+        "batch_size": batch_size,
+    }
+
+
 def export_to_neo4j(
     result: "ImportGraphResult",
     uri: str,

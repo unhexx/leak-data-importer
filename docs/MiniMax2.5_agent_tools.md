@@ -2,7 +2,7 @@
 
 This document describes the **tools** a local autonomous development agent (such as MiniMax2.5 or similar) can reliably use while working on the `leak-data-importer` project.
 
-> **Recommended:** For long-running autonomous development, use the improved Agentic Loop Template located at `docs/agentic_loop/`. It enforces local Python venv usage, English instructions + Russian developer-style commits, and is tuned for MiniMax2.5 in non-interactive agent environments.
+> **Recommended:** For long-running autonomous development, use the improved Agentic Loop Template located at `agentic_loop_template/`. It enforces local Python venv usage, English instructions + Russian developer-style commits, and is tuned for MiniMax2.5 in non-interactive agent environments.
 
 The goal is to give the agent a clear, stable interface so it can develop features, debug, test, and ship code without constant human intervention.
 
@@ -65,7 +65,7 @@ Example:
 
 ### Запуск Agentic Loop через Blackbox + MiniMax2.5
 
-Для длительной автономной работы рекомендуется использовать улучшенный шаблон из `docs/agentic_loop/`.
+Для длительной автономной работы рекомендуется использовать улучшенный шаблон из `agentic_loop_template/`.
 
 **Быстрый старт:**
 
@@ -74,7 +74,7 @@ Example:
    .\agentic_loop_template\Agent-Init.ps1
    ```
 
-2. В настройках Blackbox добавь в Custom Instructions блок из `docs/agentic_loop/Agent-Init.md`.
+2. В настройках Blackbox добавь в Custom Instructions блок из `agentic_loop_template/Agent-Init.md`.
 
 3. В качестве первого сообщения используй промпт, сгенерированный скриптом (или текст из `Agent-Init.md`).
 

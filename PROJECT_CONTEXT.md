@@ -23,10 +23,10 @@
 
 | Field                  | Value                                      |
 |------------------------|--------------------------------------------|
-| **Cycle Number**       | 2                                          |
-| **Current Phase**      | Phase 2 — COMPLETE ✅                       |
-| **Active Role**        | Orchestrator                                |
-| **Overall Status**    | COMPLETE (Cycle 2 Done)                    |
+| **Cycle Number**       | 3                                          |
+| **Current Phase**      | Phase 3 — Entity Resolution & Deduplication |
+| **Active Role**        | Coder (implementation in progress)           |
+| **Overall Status**    | IN_PROGRESS (Coder finishing Phase 3)      |
 | **Last Updated**      | 2026-05-29                                 |
 
 ### What Already Exists (High-Level)

@@ -180,3 +180,44 @@ def make_document(
         source_refs=[source_ref] if source_ref else [],
         canonical_key=key[:128] if key else None,
     )
+
+
+def make_person_link(
+    person_ids: list[str],
+    confidence: float,
+    match_strategy: str,
+    source_refs: Optional[list[str]] = None,
+    **props
+) -> Entity:
+    """
+    Создаёт сущность связи между персонами из разных отчётов.
+    
+    Используется для представления entity resolution результатов
+    в графовой модели. Связывает несколько персон как одну сущность.
+    
+    Args:
+        person_ids: Список ID персон, которые считаются одним человеком
+        confidence: Уверенность связки (0.0-1.0)
+        match_strategy: Использованная стратегия ("exact_passport", "fuzzy_fio", etc.)
+        source_refs: Список исходных отчётов
+        **props: Дополнительные свойства
+        
+    Returns:
+        Entity с типом "person_link"
+    """
+    props_local = {
+        "confidence": confidence,
+        "match_strategy": match_strategy,
+        "linked_persons": person_ids,
+        **props,
+    }
+    
+    # Canonical key - минимальный ID из связанных персон
+    canonical = min(person_ids) if person_ids else None
+    
+    return Entity(
+        type="person_link",
+        properties=props_local,
+        source_refs=source_refs or [],
+        canonical_key=canonical,
+    )

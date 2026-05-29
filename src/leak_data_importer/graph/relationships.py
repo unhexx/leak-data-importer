@@ -116,3 +116,35 @@ def related_to(from_id: str, to_id: str, rel_type: str = "related_to", confidenc
         source_ref=source,
         confidence=confidence,
     )
+
+
+def same_as(from_id: str, to_id: str, confidence: Optional[float] = None, match_strategy: Optional[str] = None, source: Optional[str] = None, **props) -> Relationship:
+    """
+    Связь "тот же человек" между персонами из разных отчётов.
+    
+    Используется для entity resolution - указывает что две персоны
+    из разных отчётов являются одним реальным человеком.
+    
+    Args:
+        from_id: ID первой персоны
+        to_id: ID второй персоны
+        confidence: Уверенность связки (0.0-1.0)
+        match_strategy: Стратегия совпадения ("exact_passport", "fuzzy_fio", etc.)
+        source: Источник связки
+        **props: Дополнительные свойства
+        
+    Returns:
+        Relationship с типом "SAME_AS"
+    """
+    props_local = dict(props)
+    if match_strategy:
+        props_local["match_strategy"] = match_strategy
+    
+    return Relationship(
+        from_id=from_id,
+        to_id=to_id,
+        type="SAME_AS",
+        properties=props_local,
+        source_ref=source,
+        confidence=confidence,
+    )

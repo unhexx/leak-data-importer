@@ -115,18 +115,18 @@ function Generate-AgentStarterPrompt {
 
 3. **Complete the Pre-Flight Checklist**
    Before doing any real work, open and fully complete the **Pre-Flight Checklist** section in:
-   \`docs/agentic_loop/SYSTEM_PROMPT.md\` (version 2.1)
+   \`agentic_loop_template/SYSTEM_PROMPT.md\` (version 3)
    All placeholders must be verified or filled.
 
 ---
 
 ## REQUIRED READING ORDER (read in this exact sequence)
 
-1. \`docs/agentic_loop/README.md\`
-2. \`docs/agentic_loop/SYSTEM_PROMPT.md\` ← **Most important document**
-3. \`docs/agentic_loop/AGENT_ROLES.md\` (detailed instructions + recommended temperatures per role)
-4. \`docs/agentic_loop/HANDOFF_SCHEMA.md\` (strict JSON format for role transitions)
-5. \`docs/agentic_loop/Agent-Init.md\`
+1. \`agentic_loop_template/README.md\`
+2. \`agentic_loop_template/SYSTEM_PROMPT.md\` ← **Most important document**
+3. \`agentic_loop_template/AGENT_ROLES.md\` (detailed instructions + recommended temperatures per role)
+4. \`agentic_loop_template/HANDOFF_SCHEMA.md\` (strict JSON format for role transitions)
+5. \`agentic_loop_template/Agent-Init.md\`
 6. Current specification file (\`{{ SPEC_FILE }}\`)
 
 Only after reading the above, proceed to act.
@@ -222,18 +222,18 @@ $Task
 
 3. **Complete the Pre-Flight Checklist**
    Before doing any real work, open and fully complete the **Pre-Flight Checklist** section in:
-   \`docs/agentic_loop/SYSTEM_PROMPT.md\` (version 2.1)
+   \`agentic_loop_template/SYSTEM_PROMPT.md\` (version 3)
    All placeholders must be verified or filled.
 
 ---
 
 ## REQUIRED READING ORDER (read in this exact sequence)
 
-1. \`docs/agentic_loop/README.md\`
-2. \`docs/agentic_loop/SYSTEM_PROMPT.md\` ← **Most important document**
-3. \`docs/agentic_loop/AGENT_ROLES.md\` (detailed instructions + recommended temperatures per role)
-4. \`docs/agentic_loop/HANDOFF_SCHEMA.md\` (strict JSON format for role transitions)
-5. \`docs/agentic_loop/Agent-Init.md\`
+1. \`agentic_loop_template/README.md\`
+2. \`agentic_loop_template/SYSTEM_PROMPT.md\` ← **Most important document**
+3. \`agentic_loop_template/AGENT_ROLES.md\` (detailed instructions + recommended temperatures per role)
+4. \`agentic_loop_template/HANDOFF_SCHEMA.md\` (strict JSON format for role transitions)
+5. \`agentic_loop_template/Agent-Init.md\`
 6. Current specification file ($SpecFile)
 
 Only after reading the above, proceed to act.
