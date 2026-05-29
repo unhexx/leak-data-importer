@@ -4,34 +4,31 @@
 Эти тесты проверяют создание сущностей, связей и батч-экспорт в Neo4j.
 """
 
-import pytest
 from datetime import date
 
 from leak_data_importer.graph import (
-    Entity,
-    Relationship,
     ImportGraph,
-    make_person,
-    make_phone,
-    make_email,
-    make_passport,
-    make_snils,
-    make_esia_account,
+    ImportGraphResult,
+    event_at,
+    has_document,
+    has_email,
+    has_phone,
+    issued_to,
+    located_at,
     make_address,
-    make_vehicle,
+    make_document,
+    make_email,
+    make_esia_account,
     make_event,
     make_location,
-    make_document,
-    has_phone,
-    has_email,
-    has_document,
-    registered_at,
+    make_passport,
+    make_person,
+    make_phone,
+    make_snils,
+    make_vehicle,
     owns_account,
-    event_at,
-    located_at,
-    issued_to,
+    registered_at,
     related_to,
-    ImportGraphResult,
 )
 
 

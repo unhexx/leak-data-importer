@@ -10,10 +10,10 @@
 
 | Parameter           | Value                                      |
 |---------------------|--------------------------------------------|
-| **Cycle Number**    | 0 (initial)                                |
-| **Sprint Goal**     | Establish solid foundation for graph-based analysis of leak data with reliable import pipeline |
-| **Start Date**      | 2026-05-28                                 |
-| **Target Completion** | End of Cycle 2–3                        |
+| **Cycle Number**    | 1                                          |
+| **Sprint Goal**    | Complete Phase 1 Graph Modeling & Neo4j Foundation, start Phase 2 Database Layer |
+| **Start Date**     | 2026-05-28                                 |
+| **Target Completion** | End of Cycle 2                            |
 
 ---
 
@@ -56,10 +56,10 @@
 
 | #   | Task                                              | Acceptance Criteria                                                                 | Status |
 |-----|---------------------------------------------------|-------------------------------------------------------------------------------------|--------|
-| 2.1 | Introduce SQLAlchemy 2.0 models                   | Core tables (persons, documents, events, links) are properly mapped                 | ☐      |
-| 2.2 | Set up Alembic migrations                         | `alembic upgrade head` works cleanly from a fresh database                          | ☐      |
-| 2.3 | Refactor existing DB code                         | `dossier_db_importer.py` and related modules use the new ORM layer                  | ☐      |
-| 2.4 | Add basic CRUD operations with proper typing      | Repository pattern or service layer for main entities                               | ☐      |
+| 2.1 | Introduce SQLAlchemy 2.0 models                   | Core tables (persons, documents, events, links) are properly mapped                 | ✅ Done |
+| 2.2 | Set up Alembic migrations                         | `alembic upgrade head` works cleanly from a fresh database                          | ✅ Done |
+| 2.3 | Refactor existing DB code                         | `dossier_db_importer.py` and related modules use the new ORM layer                  | ✅ Done |
+| 2.4 | Add basic CRUD operations with proper typing      | Repository pattern or service layer for main entities                               | ✅ Done |
 
 ---
 

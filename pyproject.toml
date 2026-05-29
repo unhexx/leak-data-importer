@@ -44,6 +44,9 @@ graph = [
 ]
 db = [
     "psycopg2-binary>=2.9",   # PostgreSQL driver for DB mapping
+    "sqlalchemy[asyncio]>=2.0",  # SQLAlchemy 2.0 async ORM
+    "alembic>=1.13",         # Database migrations
+    "asyncpg>=0.29",        # Async PostgreSQL driver
 ]
 
 [project.scripts]
