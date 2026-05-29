@@ -53,10 +53,11 @@
 - Database schema draft (`db/schema.sql`)
 - Local venv management scripts (`scripts/setup.ps1`, `agentic_loop_template/setup_env.ps1`)
 
-**Agentic Development Loop**
-- Full `agentic_loop_template/` (v2.1) with 5-role cycle
-- Robust Windows PowerShell support (including bash-style chaining)
-- Strong emphasis on local `.venv` usage
+**Development Loops (dual mode)**
+- Heavy: full `agentic_loop_template/` (v2.1) with 5-role cycle (Orchestrator → Coder → Tester → Debugger → Reviewer), JSON handoffs, self-improvement artifacts
+- Lightweight: `agentless_loop/` (Solver Loop) — single-model Inspect→Define success→Smallest vertical slice→Proportional verification→Reflect (рекомендуется для прямой работы в Grok CLI и быстрых итераций)
+- Общие правила (русский язык коммитов/комментариев, .venv-only, запрет упоминаний AI) — `agentic_loop_template/DEVELOPMENT_STANDARDS.md` + `AGENTS.md`
+- Robust Windows PowerShell support (including bash-style chaining via posh-bash-chaining/)
 
 ---
 
@@ -66,7 +67,7 @@
 - Strong focus on **Russian-language data quality** (names, patronymics, document formats, addresses).
 - Graph modeling is the primary long-term value (relationships between people, events, locations).
 - Security and PII handling are critical (hashing/tokenization planned but not yet implemented).
-- Development is done through a structured self-improving agentic loop with strict role separation.
+- Development is done through structured self-improving loops (dual-mode: heavy agentic or lightweight agentless Solver Loop) with strict standards on language, quality, and environment.
 
 ---
 
@@ -74,7 +75,7 @@
 
 - Neo4j exporter still incomplete (no full batching, indexes, or constraints for all entities) — primary focus for Phase 5.
 - Additional exporters (CSV, JSON Lines, Parquet) missing.
-- Streamlit app remains basic (needs major UX and visualization improvements).
+- Streamlit app remains basic (needs major UX and visualization improvements). A detailed implementation plan for evolving it into a Production-Grade Investigation Interface (Idea #2) was created in the May 2026 strategy review — see research plan Section 9 for full INVEST breakdown.
 - CLI is minimal (lacks export/analyze/link commands).
 - No CI/CD pipeline yet (GitHub Actions needed).
 - Documentation is medium (needs expansion: API docs, security guidelines, real examples).
@@ -83,9 +84,14 @@
 
 ---
 
-## Self-Improvement Guidelines for the Agentic Loop
+## Self-Improvement Guidelines for Development Loops
 
-This project uses a closed-loop agentic development process (Orchestrator → Coder → Tester → Debugger → Reviewer).
+This project supports two complementary development modes:
+
+- **Agentic** (heavy): closed-loop process with strict role separation (Orchestrator → Coder → Tester → Debugger → Reviewer) and JSON handoffs. Use for complex phases.
+- **Agentless** (lightweight Solver Loop): single strong model follows Inspect → Define success → Smallest vertical slice → Proportional verification → Reflect. Recommended default for direct work in this Grok CLI, Cursor, etc. See `AGENTS.md` + `agentless_loop/`.
+
+Both modes share the same non-negotiable standards (see `agentic_loop_template/DEVELOPMENT_STANDARDS.md` and `AGENTS.md`).
 
 **Critical Rule — Code Comments and Documentation (Strict Enforcement):**
 
@@ -100,6 +106,8 @@ When any role (especially Coder, Debugger, or Reviewer) modifies source code:
 This rule exists to maintain code quality and authenticity. The Reviewer is responsible for catching violations.
 
 **Self-Improvement Focus Areas (updated by Reviewer after each full cycle):**
+
+- Strategic product direction: After completing core Phase 5 technical items, prioritize turning the strong graph + normalization engine into a usable product. The detailed plan for "Production-Grade Investigation Interface" (Idea #2) is a key vehicle for this — it directly addresses the gap between powerful internals and analyst adoption.
 
 - Effectiveness of the current role prompts and temperatures (especially for MiniMax 2.5 on exporter/visualization tasks)
 - Quality of handoffs between roles (JSON schema adherence) and integration of `last_agent_completion.json`

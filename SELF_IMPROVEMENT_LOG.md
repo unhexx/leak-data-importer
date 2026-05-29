@@ -1,8 +1,8 @@
 # SELF_IMPROVEMENT_LOG.md
 
-> Dedicated log for the **agentic loop's own performance** and evolution.  
-> Maintained primarily by the **Reviewer** at the end of each full external cycle.  
-> Focus: How well the 5-role system (Orchestrator → Coder → Tester → Debugger → Reviewer) is working, not just the application code.  
+> Dedicated log for the **development loops' own performance and evolution** (both heavy agentic and lightweight agentless/Solver modes).  
+> Maintained primarily by the **Reviewer** (agentic) or directly in agentless sessions (after meaningful slices).  
+> Focus: How well the chosen loop (5-role handoff machine or single-model Solver Loop) is working, not just the application code.  
 > All content in English.
 
 ---
@@ -29,6 +29,19 @@ The Reviewer is responsible for detecting and correcting violations of this rule
 ---
 
 ## Cycle Performance Reviews
+
+### Dual-Mode Loop Initialization (2026-05-29)
+**What was added:**
+- `agentless_loop/` (README.md + SOLVER_LOOP.md) as lightweight single-model complement to the existing heavy `agentic_loop_template/`.
+- Root `AGENTS.md` as the single source of truth for "two modes" choice and shared permanent rules (Russian commits/comments, .venv, no AI mentions).
+- Cross-updates in root README, PROJECT_CONTEXT.md, SPRINTPLAN.md, TODO.md, and `docs/MiniMax2.5_agent_tools.md` so both human developers and Grok-native sessions know when to pick the fast Solver Loop vs the full 5-role machine.
+
+**Rationale:**
+- The heavy agentic template is excellent for long autonomous Blackbox/MiniMax runs on complex Phase 5 work.
+- Direct work in this Grok CLI (plan mode, skills, disallowed subagents, quick vertical slices) benefits from a low-overhead "one model does the whole Inspect→Reflect cycle" pattern (proven in sibling projects).
+- Both modes now share the same high standards via DEVELOPMENT_STANDARDS.md + AGENTS.md.
+
+**Next self-improvement focus:** After using agentless on 2–3 real slices, capture concrete lessons (e.g. "3-tool limit works well for normalization changes", "need stronger fixture coverage before any graph edit") back into AGENTS.md or SOLVER_LOOP.md.
 
 ### Cycle 0 — Initial Seeding (2026-05-28)
 

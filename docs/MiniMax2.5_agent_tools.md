@@ -2,7 +2,9 @@
 
 This document describes the **tools** a local autonomous development agent (such as MiniMax2.5 or similar) can reliably use while working on the `leak-data-importer` project.
 
-> **Recommended:** For long-running autonomous development, use the improved Agentic Loop Template located at `agentic_loop_template/`. It enforces local Python venv usage, English instructions + Russian developer-style commits, and is tuned for MiniMax2.5 in non-interactive agent environments.
+> **Recommended for long-running autonomous runs (Blackbox + MiniMax 2.5 etc.):** use the improved Agentic Loop Template at `agentic_loop_template/`. It enforces local Python venv usage, English instructions + Russian developer-style commits, and is tuned for non-interactive agent environments with full 5-role handoffs.
+
+> **For direct work in Grok CLI, Cursor, or fast single-model iterations:** prefer the lightweight **Agentless / Solver Loop** at `agentless_loop/` (see root `AGENTS.md`). One strong model runs the Inspect → Define success → Smallest vertical slice → ... cycle directly with minimal overhead.
 
 The goal is to give the agent a clear, stable interface so it can develop features, debug, test, and ship code without constant human intervention.
 

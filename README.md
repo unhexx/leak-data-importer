@@ -101,6 +101,27 @@ This project does **not** distribute or host any leaked data. Users are fully re
 **Важно при возобновлении работы:**
 Если работа была прервана и в корне проекта присутствует файл `last_agent_completion.json`, то для продолжения используйте именно `orchestrator_resume_prompt.md`. Этот промпт специально адаптирован под анализ результата предыдущего агента и восстановление контекста.
 
+## Agentless / Direct Development (Solver Loop)
+
+Для быстрой прямой работы в **Grok CLI**, Blackbox (прямой чат), Cursor и аналогичных инструментах используйте облегчённый **Agentless Loop**:
+
+- Расположение: `agentless_loop/`
+- Основной документ: `AGENTS.md` (выбор режима + правила)
+- Детальный паттерн: `agentless_loop/SOLVER_LOOP.md` (Inspect → Define success → Smallest vertical slice → Proportional verification → Reflect, максимум 3 tool call за кластер)
+- Правила языка/качества/окружения: `agentic_loop_template/DEVELOPMENT_STANDARDS.md` (общие для обоих режимов)
+
+**Быстрый старт:**
+```powershell
+. .\scripts\setup.ps1
+```
+Затем читай `AGENTS.md` + `agentless_loop/README.md` и работай по Solver Loop.
+
+**Когда какой режим?**
+- Agentless (по умолчанию для этого CLI и быстрых итераций) — сильная модель, небольшие вертикальные срезы, минимум артефактов.
+- Agentic (полноценный) — сложные фазы, высокие риски, требуется жёсткое разделение ответственности (Orchestrator + ревьюер и т.д.).
+
+Оба режима строго требуют: естественный русский в коммитах и комментариях, работа только внутри `.venv`, никаких упоминаний AI/LLM/агентов в артефактах кода.
+
 ## Windows helpers
 
 Для комфортной работы в классической Windows PowerShell в репозитории есть инструмент:
