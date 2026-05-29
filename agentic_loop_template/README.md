@@ -77,7 +77,11 @@ It is designed to be compatible with the tool set described in `docs/MiniMax2.5_
 
 ## Standalone Archive
 
-A ready-to-use zip of this template (for starting new autonomous agentic projects) is provided separately as `agentic_loop_template_v2.zip`.
+A ready-to-use zip of this template (for starting new autonomous agentic projects) is provided as `agentic_loop_template_v3_final.zip`.
+
+Для запуска нового цикла Orchestrator'а используйте подготовленные промпты в корне проекта:
+- `orchestrator_start_prompt_*.md` — готовые промпты под конкретные фазы
+- `orchestrator_start_prompt_template.md` — универсальный шаблон для будущих циклов или возобновления работы.
 
 ## Applying to an Existing Project
 
