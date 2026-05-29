@@ -10,21 +10,21 @@
 
 | Parameter           | Value                                      |
 |---------------------|--------------------------------------------|
-| **Cycle Number**    | 4                                          |
-| **Sprint Goal**    | Complete Phase 4 Testing, Quality & PII Safety |
-| **Start Date**     | 2026-05-28                                 |
-| **Target Completion** | End of Cycle 4                            |
+| **Cycle Number**    | 6                                          |
+| **Sprint Goal**    | Phase 5: Production Readiness - Complete Exporters, Visualization, CLI, CI/CD and Documentation |
+| **Start Date**     | 2026-05-30                                 |
+| **Target Completion** | End of Cycle 6                            |
 
 ---
 
-## Current Priorities (from TODO.md)
+## Current Priorities (from TODO.md and Phase 4 completion)
 
-1. Graph + Neo4j layer — bring to usable state (highest value feature)
-2. Database layer — SQLAlchemy 2.0 + proper migrations
-3. Deduplication and entity linking — core analytical capability
-4. High-quality tests on real examples
-5. Normalization improvements (especially documents and addresses)
-6. Maturation of the agentic development loop itself
+1. Complete Neo4j exporter (batch, indexes, constraints) and add other exporters (CSV, JSON Lines, Parquet) — high value for analysis
+2. Significantly enhance Streamlit visualization and UX
+3. Enhance CLI with export, analyze, and link commands
+4. Add CI/CD (GitHub Actions for lint, test, typecheck)
+5. Improve documentation (API docs, user guide, security guidelines, examples)
+6. Production hardening (Docker support, cross-platform notes, final PII storage protection if needed)
 
 ---
 
@@ -74,16 +74,16 @@
 
 ---
 
-## Phase 4 — Testing, Quality & PII Safety
+## Phase 5 — Production Readiness: Exporters, Visualization, CLI, CI/CD and Documentation
 
 | #   | Task                                              | Acceptance Criteria                                                                 | Status |
 |-----|---------------------------------------------------|-------------------------------------------------------------------------------------|--------|
-| 4.1 | Run existing test suite to verify compatibility | pytest passes (all 19 tests in test_person_linker.py pass) | ✅ Done |
-| 4.2 | Fix PersonLinker strategy weights and logic       | Passport exact match returns 1.0 immediately, weights sum to 1.0     | ✅ Done |
-| 4.3 | Add unit tests for database repositories        | All CRUD operations have at least basic test coverage         | ☐      |
-| 4.4 | Add PII handling strategy (hashing/tokenization)  | Sensitive fields are never stored in plain text in DB or graph (at minimum design + skeleton) | ☐      |
-| 4.5 | Improve normalization for documents and addresses | Edge cases from real reports are handled correctly                                  | ☐      |
-| 4.6 | Run full lint + type check + test suite           | `scripts/lint.ps1` and `scripts/test.ps1` pass cleanly                              | ☐      |
+| 5.1 | Complete Neo4j exporter (batch, indexes, constraints) | Full support for all current entities (Person, links, etc.); batch export works; indexes and constraints in place | ☐      |
+| 5.2 | Implement CSV and JSON Lines exporters            | Core exporters in exporters/ module; handle current entity types; tested with sample data | ☐      |
+| 5.3 | Significantly enhance Streamlit app               | Improved UX (filters, search); better graph visualization; export buttons integrated; handles real data volumes | ☐      |
+| 5.4 | Enhance CLI with export and analyze commands      | New subcommands (export, analyze, link) with good help and examples; integrated with existing importers | ☐      |
+| 5.5 | Add basic GitHub Actions CI                       | .github/workflows/ with lint, test, and typecheck jobs on push/PR; passes cleanly | ☐      |
+| 5.6 | Improve project documentation                     | Expanded README with real examples; added security guidelines and API notes; USAGE.md updated | ☐      |
 
 ---
 
@@ -91,10 +91,10 @@
 
 | #   | Task                                              | Acceptance Criteria                                                                 | Status |
 |-----|---------------------------------------------------|-------------------------------------------------------------------------------------|--------|
-| S1  | Evaluate current role prompts and temperatures    | Document what worked well and what needs tuning in `PROJECT_CONTEXT.md`             | ☐      |
-| S2  | Improve handoff quality between roles             | Reduce malformed JSON handoffs; update `HANDOFF_SCHEMA.md` if needed                | ☐      |
-| S3  | Strengthen enforcement of Russian code comments   | Reviewer catches and corrects any English comments or AI-style language             | ☐      |
-| S4  | Update this SPRINTPLAN after each cycle           | Clear progress tracking and reprioritization based on real outcomes                 | ☐      |
+| S1  | Integrate last_agent_completion.json into Reviewer workflow | All DONE decisions create the temp file + archive; Markdown captured correctly     | ☐      |
+| S2  | Evaluate MiniMax 2.5 performance on Phase 5 exporter/visualization tasks | Document prompt effectiveness and any needed template tweaks in SELF_IMPROVEMENT_LOG.md | ☐      |
+| S3  | Strengthen PII handling in new exporter code      | All new exporters use PiiSafeLogger and redaction utilities; audited by Reviewer   | ☐      |
+| S4  | Update this SPRINTPLAN and context after each cycle | Clear progress; new INVEST tasks added as needed; natural Russian updates          | ☐      |
 
 ---
 
@@ -105,4 +105,6 @@
 - The Reviewer owns the quality of both code **and** the agentic process itself.
 - Update `PROJECT_CONTEXT.md` with any important architectural or process decisions.
 
-**Current Sprint Focus:** Laying strong foundations for the graph analysis capability while maturing the agentic development loop.
+**Current Sprint Focus:** Completing production-ready exporters, visualization, and tooling (Phase 5) while continuing to mature the agentic development loop with MiniMax 2.5.
+
+**Optimization note for MiniMax 2.5 / Blackbox:** All tasks are broken into small, INVEST-sized items with clear acceptance criteria. Use the tuned agentic_loop_template/ (role temperatures: 0.0 for Orchestrator/Reviewer planning & review; 0.2 for Coder/Debugger implementation; Pre-Flight Checklist; English instructions + strict Russian human-style commits and comments per DEVELOPMENT_STANDARDS.md). Follow PLAN → ACT → REFLECT. Start every major step with Agent-Init.ps1.

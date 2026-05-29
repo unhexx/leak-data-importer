@@ -23,10 +23,10 @@
 
 | Field                  | Value                                      |
 |------------------------|--------------------------------------------|
-| **Cycle Number**       | 5                                          |
-| **Current Phase**      | Phase 4 completion (COMPLETED)              |
-| **Active Role**        | Coder → Tester (Cycle 5 handoff)         |
-| **Overall Status**    | COMPLETED (Phase 4 done)                    |
+| **Cycle Number**       | 6                                          |
+| **Current Phase**      | Phase 5 start: Production Readiness (Exporters, Visualization, CLI, CI/CD) |
+| **Active Role**        | Orchestrator (planning Cycle 6 / Phase 5)  |
+| **Overall Status**    | Phase 4 COMPLETE; Phase 5 planning initiated |
 | **Last Updated**      | 2026-05-30                                 |
 
 ### What Already Exists (High-Level)
@@ -70,14 +70,16 @@
 
 ---
 
-## Known Limitations and Risks
+## Known Limitations and Risks (updated after Phase 4)
 
-- Insufficient test coverage on real "dirty" leak data.
-- No proper PII protection layer yet (high compliance risk).
-- Database layer is still basic (no SQLAlchemy 2.0 models or migrations).
-- Cross-report entity resolution / deduplication is missing (core analytical feature).
-- Neo4j exporter is incomplete (no batching, constraints, or indexing strategy).
-- Windows-centric tooling (PowerShell scripts) — cross-platform support is weak.
+- Neo4j exporter still incomplete (no full batching, indexes, or constraints for all entities) — primary focus for Phase 5.
+- Additional exporters (CSV, JSON Lines, Parquet) missing.
+- Streamlit app remains basic (needs major UX and visualization improvements).
+- CLI is minimal (lacks export/analyze/link commands).
+- No CI/CD pipeline yet (GitHub Actions needed).
+- Documentation is medium (needs expansion: API docs, security guidelines, real examples).
+- Full PII protection in persistent storage (hashing/tokenization in DB and graph) still partial.
+- Windows-centric tooling — cross-platform / Docker support weak.
 
 ---
 
@@ -99,11 +101,11 @@ This rule exists to maintain code quality and authenticity. The Reviewer is resp
 
 **Self-Improvement Focus Areas (updated by Reviewer after each full cycle):**
 
-- Effectiveness of the current role prompts and temperatures
-- Quality of handoffs between roles (JSON schema adherence)
-- How well the agent maintains `PROJECT_CONTEXT.md` and `SPRINTPLAN.md`
-- Common failure patterns in parsing real leak data
-- Improvements to the local development environment and tooling
+- Effectiveness of the current role prompts and temperatures (especially for MiniMax 2.5 on exporter/visualization tasks)
+- Quality of handoffs between roles (JSON schema adherence) and integration of `last_agent_completion.json`
+- How well the agent maintains `PROJECT_CONTEXT.md`, `SPRINTPLAN.md`, and the new Phase 5 artifacts
+- Common failure patterns when implementing exporters or visualization features
+- Improvements to the local development environment, tooling, and agentic loop (including UTF-8 and file-writing standards)
 
 ---
 
