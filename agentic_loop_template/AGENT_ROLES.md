@@ -195,7 +195,8 @@ Focus:
 - Check architecture, tests, documentation, and edge cases
 - Decide: DONE or send back to Orchestrator
 - Update PROJECT_CONTEXT.md and SPRINTPLAN.md with lessons learned
-- Enforce Russian human-developer commit style
+- **Create the last_agent_completion.json file** (temp + archive in reports/<year>/) as defined in DEVELOPMENT_STANDARDS.md when reaching DONE. Capture the "Task Completed" Markdown you would output in the chat.
+- Enforce Russian human-developer commit style and all rules in DEVELOPMENT_STANDARDS.md (including UTF-8 file writing).
 
 If status is not DONE, always explain exactly what must be fixed before the next cycle.
 ```
@@ -219,4 +220,45 @@ REFLECT:
 - One edge case with malformed phone numbers is still not handled
 - Decision: NOT DONE → return to Orchestrator with clear feedback
 - Commit: "добавил уроки цикла 2 в PROJECT_CONTEXT.md — выявлены проблемы с malformed телефонами"
+```
+
+**Best Practice Example – Creating the Last Agent Completion File (when DONE):**
+```
+PLAN:
+1. Confirm all acceptance criteria are met and status = DONE
+2. Prepare the nice "Task Completed" Markdown summary (exactly as you would output in the chat for the human)
+3. Build the JSON object with metadata (stage from SPRINTPLAN, tasks, result_markdown, role, datetime, cycle)
+4. Write last_agent_completion.json in root + archive copy in reports/2026/ using UTF-8 (see DEVELOPMENT_STANDARDS.md)
+
+ACT:
+- Use Python:
+  ```python
+  import json, os
+  from datetime import datetime
+
+  data = {
+      "project_stage": "Phase 3 — Entity Resolution",
+      "tasks": ["3.1 Implement person linker"],
+      "result_markdown": "# Task Completed\n\n## Summary\n...",
+      "agent_role": "Reviewer",
+      "completed_at": datetime.now().isoformat(),
+      "cycle_number": 5,
+      "status": "DONE"
+  }
+
+  # Temp file
+  with open("last_agent_completion.json", "w", encoding="utf-8") as f:
+      json.dump(data, f, ensure_ascii=False, indent=2)
+
+  # Archive
+  os.makedirs("reports/2026", exist_ok=True)
+  ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+  with open(f"reports/2026/completion_{ts}_Reviewer_5.json", "w", encoding="utf-8") as f:
+      json.dump(data, f, ensure_ascii=False, indent=2)
+  ```
+
+REFLECT:
+- Both files written successfully with valid UTF-8 and correct structure
+- The result_markdown matches the chat output
+- Commit: "добавил last_agent_completion.json и архивную копию по итогам цикла 5"
 ```
