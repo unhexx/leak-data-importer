@@ -8,7 +8,8 @@ The agent cycles through roles (Orchestrator → Coder → Tester → Debugger �
 
 - **Mandatory local Python environment**: The Orchestrator must ensure a `.venv` exists and all requirements from `pyproject.toml` (or `requirements.txt`) are installed at the beginning of every cycle.
 - **Non-interactive friendly**: Designed to work when AI agents (Blackbox, Continue, etc.) spawn fresh PowerShell processes.
-- **English primary language** with explicit requirement for **Russian commit messages** written in the voice of a real human developer (no mention of AI, LLM, agent, or model names in commits).
+- **English primary language** with explicit requirement for **Russian commit messages and code comments** written in the voice of a real human developer (see `DEVELOPMENT_STANDARDS.md`).
+- Strong self-improvement focus: dedicated `SELF_IMPROVEMENT_LOG.md` and `DEVELOPMENT_STANDARDS.md`.
 - Aligned with the project's `docs/MiniMax2.5_agent_tools.md`.
 
 ## Directory Structure
@@ -16,16 +17,18 @@ The agent cycles through roles (Orchestrator → Coder → Tester → Debugger �
 ```
 agentic_loop_template/
 ├── README.md
-├── SYSTEM_PROMPT.md              # Main system prompt
+├── SYSTEM_PROMPT.md
 ├── AGENT_ROLES.md
 ├── HANDOFF_SCHEMA.md
 ├── TOOLS_REGISTRY.md
+├── DEVELOPMENT_STANDARDS.md          # Critical rules (Russian comments, human developer voice, etc.)
 ├── PROJECT_CONTEXT_TEMPLATE.md
 ├── SPRINTPLAN_TEMPLATE.md
-├── setup_env.ps1                 # Python venv + requirements bootstrap
-├── Profile-Bootstrap.ps1         # PowerShell profile helper
-├── Agent-Init.ps1                # Robust setup for Blackbox + VSCode (auto-heals broken .venv)
-└── Agent-Init.md                 # Detailed guide for Blackbox / MiniMax2.5 in VSCode
+├── SELF_IMPROVEMENT_LOG.md           # (example) — for tracking loop effectiveness
+├── setup_env.ps1
+├── Profile-Bootstrap.ps1
+├── Agent-Init.ps1
+└── Agent-Init.md
 ```
 
 ## Quick Start (Recommended for Blackbox + MiniMax 2.5)
@@ -77,7 +80,7 @@ It is designed to be compatible with the tool set described in `docs/MiniMax2.5_
 
 ## Standalone Archive
 
-A ready-to-use zip of this template (for starting new autonomous agentic projects) is provided separately as `agentic_loop_template_v2.zip`.
+A ready-to-use zip of this template (for starting new autonomous agentic projects) is provided as `agentic_loop_template_v3_*.zip` (includes DEVELOPMENT_STANDARDS.md with strict Russian commenting rules).
 
 ## Applying to an Existing Project
 

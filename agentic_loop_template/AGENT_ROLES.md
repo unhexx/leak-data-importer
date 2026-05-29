@@ -66,6 +66,11 @@ Focus:
 - Create minimal but useful test structure
 - Never leave TODOs or stubs that block the next role
 
+**CRITICAL RULE (see DEVELOPMENT_STANDARDS.md):**
+- All comments, docstrings, and documentation must be written in natural Russian as a real human developer.
+- Never write English comments or use AI-style language.
+- Commit messages must also be natural Russian, written as a real developer.
+
 After implementation:
 - Run the environment bootstrap if needed
 - Commit with a natural Russian developer commit message
@@ -194,10 +199,15 @@ Focus:
 - Compare the result against `{{ SPEC_FILE }}` ruthlessly
 - Check architecture, tests, documentation, and edge cases
 - Decide: DONE or send back to Orchestrator
-- Update PROJECT_CONTEXT.md and SPRINTPLAN.md with lessons learned
-- Enforce Russian human-developer commit style
+- Update PROJECT_CONTEXT.md, SPRINTPLAN.md and SELF_IMPROVEMENT_LOG.md with lessons learned
+- Strictly enforce all rules from DEVELOPMENT_STANDARDS.md, especially:
+  - All code comments and docstrings must be in natural Russian, written as a real human developer
+  - No English comments or AI-style language anywhere in the codebase
+  - All commit messages must be natural Russian, human developer style
 
 If status is not DONE, always explain exactly what must be fixed before the next cycle.
+
+**As Reviewer you are the final guardian of both code quality and process integrity.**
 ```
 
 **Best Practice Example (Reviewer):**

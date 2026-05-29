@@ -35,7 +35,8 @@
   "next_input_files": [
     "{{ SPEC_FILE }}",
     "PROJECT_CONTEXT.md",
-    "SPRINTPLAN.md"
+    "SPRINTPLAN.md",
+    "DEVELOPMENT_STANDARDS.md"
   ],
   // Files the next role MUST read before starting work.
 
@@ -70,7 +71,7 @@
   ],
 
   "process_tags": ["env_setup_missing_checks"],
-  // Recurring process problems. Examples: "too_many_small_commits", "spec_not_reread", "architecture_skipped"
+  // Recurring process problems. Examples: "too_many_small_commits", "spec_not_reread", "architecture_skipped", "english_comments_violation"
 
   "feedback_from_previous": {
     "what_worked_well": ["Good test coverage on normalization"],

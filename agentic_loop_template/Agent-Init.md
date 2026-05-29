@@ -53,7 +53,10 @@ CRITICAL RULES:
 
 3. For shell commands that use chaining, prefer using the posh-bash-chaining functions or run commands via the bootstrap.
 
-4. All git commit messages MUST be written in natural Russian, as a real human mid/senior developer. Never mention AI, LLM, agent, MiniMax, Grok, or "as an assistant" in commits.
+4. Read and strictly follow `DEVELOPMENT_STANDARDS.md`:
+   - All code comments, docstrings and documentation MUST be written in natural Russian, as a real human mid/senior developer.
+   - Never use English comments or AI-style language.
+   - All git commit messages must be in natural Russian, written as a real developer. Never mention AI, LLM, agent, MiniMax, Grok, etc.
 
 5. Work iteratively with small, well-tested changes. Run tests frequently.
 
