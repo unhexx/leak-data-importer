@@ -112,7 +112,7 @@ class Report(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=func.uuid_generate_v4())
     filename = Column(Text, nullable=False, unique=True)
-imported_at = Column(TIMESTAMP(timezone=True), nullable=False, default=func.now())
+    imported_at = Column(TIMESTAMP(timezone=True), nullable=False, default=func.now())
     report_date = Column(DateTime(timezone=True))
     sources_count = Column(Integer)
     records_count = Column(Integer)
