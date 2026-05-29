@@ -47,8 +47,8 @@
 | 1.1 | Extend graph entity model                         | Support for new entity types (events, locations, documents) with proper relationships | ✅ Done |
 | 1.2 | Improve Neo4j exporter                            | Supports batch inserts, basic constraints, and indexing strategy                    | ✅ Done |
 | 1.3 | Add temporal relationships                        | `registered_at` and event dates are properly modeled and exported                   | ✅ Done |
-| 1.4 | Write integration tests for graph export          | Real sample reports can be imported and exported to a test Neo4j instance           | ☐      |
-| 1.5 | Commit graph layer improvements                   | Natural Russian commit message, human developer style                               | ☐      |
+| 1.4 | Write integration tests for graph export          | Real sample reports can be imported and exported to a test Neo4j instance           | ✅ Done |
+| 1.5 | Commit graph layer improvements                   | Natural Russian commit message, human developer style                               | ✅ Done |
 
 ---
 
