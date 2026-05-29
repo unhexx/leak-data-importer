@@ -27,14 +27,23 @@ param(
 $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 
-# Force UTF-8 everywhere possible (console + pipeline).
-# Strongly recommended on Russian Windows where the system codepage is often CP1251.
-# Wrapped in try/catch because [Console]::OutputEncoding can fail or be meaningless
-# in non-interactive / redirected sessions (Blackbox, agents, CI, etc.).
+# Force UTF-8 everywhere possible (console + pipeline + file writing).
+# This is critical on Russian Windows (default codepage = CP1251) to prevent mojibake
+# in handoff JSON files and other text outputs.
+# Wrapped in try/catch because some settings can fail in non-interactive sessions.
 try {
     $OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+    # Make all common file-writing cmdlets default to UTF-8 (without BOM where possible)
+    $PSDefaultParameterValues['Out-File:Encoding']       = 'utf8'
+    $PSDefaultParameterValues['Add-Content:Encoding']    = 'utf8'
+    $PSDefaultParameterValues['Set-Content:Encoding']    = 'utf8'
+    $PSDefaultParameterValues['Export-Csv:Encoding']     = 'utf8'
+
+    # Help Python-based tools the agent might call
+    $env:PYTHONIOENCODING = "utf-8"
 } catch {
-    # Non-interactive environment — safe to ignore.
+    # Non-interactive / restricted environment — continue anyway
 }
 
 function Get-AutoTaskDescription {
