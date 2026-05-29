@@ -94,12 +94,14 @@ credentials.json
 config/local.yaml
 
 # Agentic Loop generated working files (these are created by the agent during runs)
-PROJECT_CONTEXT.md
-SPRINTPLAN.md
-starter_prompt*.md
-docs/agentic_loop/starter_prompt*.md
-docs/agentic_loop/PROJECT_CONTEXT.md
-docs/agentic_loop/SPRINTPLAN.md
+# Note: Initial seed versions of PROJECT_CONTEXT.md, SPRINTPLAN.md and SELF_IMPROVEMENT_LOG.md
+# are intentionally committed with high-quality instructions.
+# After initial seeding, teams/agents may decide whether to keep tracking the live versions.
+# starter_prompt*.md
+# docs/agentic_loop/starter_prompt*.md
+# docs/agentic_loop/PROJECT_CONTEXT.md
+# docs/agentic_loop/SPRINTPLAN.md
+# docs/agentic_loop/SELF_IMPROVEMENT_LOG.md
 
 # Hidden context directories and debug/analysis outputs from development
 .context/
