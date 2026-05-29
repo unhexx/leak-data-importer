@@ -34,11 +34,15 @@ $ProjectRoot = Split-Path -Parent $PSScriptRoot
 try {
     $OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-    # Make all common file-writing cmdlets default to UTF-8 (without BOM where possible)
+    # Make all common file-writing cmdlets default to UTF-8
     $PSDefaultParameterValues['Out-File:Encoding']       = 'utf8'
     $PSDefaultParameterValues['Add-Content:Encoding']    = 'utf8'
     $PSDefaultParameterValues['Set-Content:Encoding']    = 'utf8'
     $PSDefaultParameterValues['Export-Csv:Encoding']     = 'utf8'
+
+    # Make reading also default to UTF-8 so that bare "cat" / Get-Content works correctly
+    # on UTF-8 files (without BOM) on Russian Windows (where default is CP1251)
+    $PSDefaultParameterValues['Get-Content:Encoding']    = 'utf8'
 
     # Help Python-based tools the agent might call
     $env:PYTHONIOENCODING = "utf-8"

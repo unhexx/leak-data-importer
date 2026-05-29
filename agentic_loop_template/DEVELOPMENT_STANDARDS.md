@@ -98,8 +98,13 @@ All text files (including handoff JSONs, logs, reports, etc.) **must** be writte
 
 ### When Reading Files
 
-- PowerShell: `Get-Content "file.json" -Encoding utf8`
+- **Recommended (and now the default after running Agent-Init.ps1)**:
+  - Bare `cat file.json` or `Get-Content file.json` will now work correctly for UTF-8 files.
+- Explicit form (always safe):
+  - PowerShell: `Get-Content "file.json" -Encoding utf8`
 - Python: `open("file.json", encoding="utf-8")`
+
+**Note**: `Agent-Init.ps1` now sets `$PSDefaultParameterValues['Get-Content:Encoding'] = 'utf8'` so that simple `cat` commands behave as expected on UTF-8 content.
 
 ### Enforcement
 

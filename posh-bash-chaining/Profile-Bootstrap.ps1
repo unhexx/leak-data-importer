@@ -31,6 +31,21 @@ try {
     if (Test-Path $__poshBashChainingMain) {
         . $__poshBashChainingMain
     }
+
+    # Дополнительно: принудительно включаем UTF-8 defaults для чтения и записи файлов.
+    # Это важно для неинтерактивных агентских сессий (Blackbox и т.п.),
+    # чтобы handoff JSON и другие текстовые файлы не превращались в кракозябры на русских Windows.
+    $PSDefaultParameterValues['Out-File:Encoding']       = 'utf8'
+    $PSDefaultParameterValues['Set-Content:Encoding']    = 'utf8'
+    $PSDefaultParameterValues['Add-Content:Encoding']    = 'utf8'
+    $PSDefaultParameterValues['Get-Content:Encoding']    = 'utf8'
+    $env:PYTHONIOENCODING = 'utf-8'
+
+    # Попытка установить кодировку консоли (может не сработать в полностью неинтерактивных сессиях)
+    try {
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $OutputEncoding = [System.Text.Encoding]::UTF8
+    } catch {}
 }
 finally {
     # Always restore the original preference

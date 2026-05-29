@@ -71,3 +71,48 @@ def associated_with(from_id: str, to_id: str, rel_type: str, source: Optional[st
         source_ref=source,
         confidence=confidence,
     )
+
+
+def event_at(person_id: str, event_id: str, date: Optional[str] = None, source: Optional[str] = None, **props) -> Relationship:
+    """Связь: персона участвовала в событии в определённую дату."""
+    return Relationship(
+        from_id=person_id,
+        to_id=event_id,
+        type="event_at",
+        properties={"date": date, **props},
+        source_ref=source,
+    )
+
+
+def located_at(person_id: str, location_id: str, location_type: str, date: Optional[str] = None, source: Optional[str] = None, **props) -> Relationship:
+    """Связь: персона находится/зарегистрирована по адресу."""
+    return Relationship(
+        from_id=person_id,
+        to_id=location_id,
+        type="located_at",
+        properties={"location_type": location_type, "date": date, **props},
+        source_ref=source,
+    )
+
+
+def issued_to(person_id: str, document_id: str, doc_type: str, source: Optional[str] = None, **props) -> Relationship:
+    """Связь: документ выдан персоне."""
+    return Relationship(
+        from_id=person_id,
+        to_id=document_id,
+        type="issued_to",
+        properties={"document_type": doc_type, **props},
+        source_ref=source,
+    )
+
+
+def related_to(from_id: str, to_id: str, rel_type: str = "related_to", confidence: Optional[float] = None, source: Optional[str] = None, **props) -> Relationship:
+    """Универсальная связь между двумя сущностями."""
+    return Relationship(
+        from_id=from_id,
+        to_id=to_id,
+        type=rel_type,
+        properties=props,
+        source_ref=source,
+        confidence=confidence,
+    )
