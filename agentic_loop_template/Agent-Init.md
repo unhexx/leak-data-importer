@@ -66,7 +66,16 @@ CRITICAL RULES:
 
 ## Step 3: First Message to the Agent (Copy-Paste)
 
-Use this as the first message when starting a new autonomous development session:
+The best way is to run `Agent-Init.ps1` — it will automatically generate a strong, structured starter prompt based on your current `TODO.md` / `TASK_SPECIFICATION.md`.
+
+For starting a new cycle or a specific phase, it is recommended to use the prepared prompt templates located in the project root:
+
+- `orchestrator_start_prompt_cycle6_phase5.md` — ready-to-use prompt for the current state.
+- `orchestrator_start_prompt_template.md` — reusable template for future cycles or resuming interrupted work.
+
+These templates are optimized for Blackbox + MiniMax 2.5 and include references to the latest planning artifacts (`SPRINTPLAN.md`, `IMPLEMENTATION_PLAN_PHASE*.md`, `PROJECT_CONTEXT.md`, etc.).
+
+If you want a manual example, use something close to this (the generated version will be more detailed):
 
 ```
 We are using the Agentic Loop Template located in agentic_loop_template/.
@@ -74,12 +83,13 @@ We are using the Agentic Loop Template located in agentic_loop_template/.
 Please read the following files in order:
 1. agentic_loop_template/README.md
 2. agentic_loop_template/SYSTEM_PROMPT.md
-3. agentic_loop_template/Agent-Init.md
+3. agentic_loop_template/DEVELOPMENT_STANDARDS.md
+4. agentic_loop_template/Agent-Init.md
 
 Then:
 - Run the environment initialization: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
 - Activate the venv
-- Read the main task specification (TASK_SPECIFICATION.md or equivalent)
+- Read the current planning documents (SPRINTPLAN.md, PROJECT_CONTEXT.md, TODO.md, latest IMPLEMENTATION_PLAN_PHASE*.md)
 - Start acting as ORCHESTRATOR and begin the agentic loop.
 
 Use natural Russian developer-style commit messages only.

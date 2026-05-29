@@ -170,6 +170,54 @@ At the beginning of every cycle, after running `Agent-Init.ps1`, ensure the curr
 - Failure to create the file (or creating it with incorrect encoding / missing fields) is treated as a process violation.
 - Record any issues in `SELF_IMPROVEMENT_LOG.md`.
 
+---
+
+## 8. Starting and Resuming Agentic Cycles (Prompt Usage Guidelines)
+
+For starting a new cycle or resuming interrupted work, special prompt files have been prepared. Their use is strongly recommended, especially when working with Blackbox + MiniMax M2.7.
+
+### 8.1. Types of Starting Prompts
+
+- `orchestrator_start_prompt_cycleX_phaseY.md` — ready-to-use prompt tailored to a specific cycle and phase.
+- `orchestrator_start_prompt_template.md` — reusable template for creating a prompt for any new phase.
+- `orchestrator_resume_prompt.md` — special template designed for **resuming interrupted work**.
+
+### 8.2. Prompt Usage Rules (Optimized for MiniMax M2.7)
+
+1. **Starting a new cycle or new phase**
+   - Use the most up-to-date ready-made prompt (`orchestrator_start_prompt_*`).
+   - If no suitable ready-made prompt exists, create one based on `orchestrator_start_prompt_template.md`.
+
+2. **Resuming interrupted work (recommended workflow)**
+   - First, check whether `last_agent_completion.json` exists in the project root.
+   - If the file exists — **always use** `orchestrator_resume_prompt.md`. This prompt contains a dedicated block that forces the agent to analyze `last_agent_completion.json` before reading other artifacts.
+   - If the file does not exist — a regular starting template may be used.
+
+3. **Mandatory elements of any starting/resume prompt**
+   - Explicit instruction to read `DEVELOPMENT_STANDARDS.md` (especially the sections on Russian code comments and UTF-8 file handling).
+   - References to the current `SPRINTPLAN.md`, `PROJECT_CONTEXT.md`, and the latest `IMPLEMENTATION_PLAN_PHASE*.md`.
+   - Reminder about the obligation to create `last_agent_completion.json` upon task completion.
+   - Reference to the recommended temperature for the Orchestrator role (0.0).
+
+### 8.3. Recommendations for the Orchestrator (Blackbox + MiniMax M2.7)
+
+- Before pasting the prompt into Blackbox, replace all placeholders with actual current values.
+- When resuming work after a long pause, always include a strong instruction to read and analyze `last_agent_completion.json` first (even when using the regular template).
+- At the beginning of its work, the Orchestrator must explicitly confirm that it has read and analyzed `last_agent_completion.json` (when present).
+- Use **temperature 0.0** for maximum structure and determinism.
+- Strictly follow the Pre-Flight Checklist from `SYSTEM_PROMPT.md`.
+- All prompts in this project are optimized for **MiniMax M2.7**. Prioritize structured, low-ambiguity reasoning and strict adherence to the defined process.
+
+### 8.4. Storage and Versioning of Prompts
+
+- Ready-made prompts for specific cycles/phases are stored in the project root.
+- Universal templates (`*_template.md` and `orchestrator_resume_prompt.md`) are also kept in the root and should not be deleted.
+- When moving to a new phase, it is recommended to create a dedicated ready-to-use prompt based on the template (for easier future resumption).
+
+**This section is mandatory for all roles in the agentic loop.**
+
+---
+
 **This document is the single source of truth for development standards in this project.**
 
 When in doubt, re-read this file. The Reviewer will hold all roles accountable to these standards.

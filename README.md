@@ -94,6 +94,10 @@ This project does **not** distribute or host any leaked data. Users are fully re
 
 Подробная инструкция — в `agentic_loop_template/Agent-Init.md`.
 
+Для запуска нового цикла или возобновления работы рекомендуется использовать готовые промпты:
+- `orchestrator_start_prompt_cycle6_phase5.md` — для текущего состояния
+- `orchestrator_start_prompt_template.md` — универсальный шаблон для будущих циклов
+
 ## Windows helpers
 
 Для комфортной работы в классической Windows PowerShell в репозитории есть инструмент:
