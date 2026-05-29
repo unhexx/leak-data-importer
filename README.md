@@ -82,7 +82,7 @@ This project does **not** distribute or host any leaked data. Users are fully re
 
 Для длительной автономной разработки рекомендуется использовать улучшенный **Agentic Loop Template**:
 
-- Расположение: `docs/agentic_loop/`
+- Расположение: `agentic_loop_template/`
 - Полный архив для старта новых проектов: `agentic_loop_template_v2.zip`
 - Особенности: принудительное использование локального `.venv`, английские инструкции + требование писать коммиты на русском от лица разработчика, хорошая совместимость с неинтерактивными агентами (Blackbox и др.)
 
@@ -92,7 +92,7 @@ This project does **not** distribute or host any leaked data. Users are fully re
 .\agentic_loop_template\Agent-Init.ps1
 ```
 
-Подробная инструкция — в `docs/agentic_loop/Agent-Init.md`.
+Подробная инструкция — в `agentic_loop_template/Agent-Init.md`.
 
 ## Windows helpers
 

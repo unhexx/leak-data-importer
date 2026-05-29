@@ -61,7 +61,7 @@ CRITICAL RULES:
 
 5. Work iteratively with small, well-tested changes. Run tests frequently.
 
-6. When the task is complex, follow the structure from docs/agentic_loop/SYSTEM_PROMPT.md (Orchestrator → Coder → Tester → Debugger → Reviewer).
+6. When the task is complex, follow the structure from agentic_loop_template/SYSTEM_PROMPT.md (Orchestrator → Coder → Tester → Debugger → Reviewer).
 
 7. Always read TASK_SPECIFICATION.md (or equivalent) before starting implementation.
 ```
@@ -98,13 +98,13 @@ Then replace the `{{ PLACEHOLDERS }}` with your project data.
 ## MANDATORY FIRST ACTIONS
 1. Run: powershell -ExecutionPolicy Bypass -File .\agentic_loop_template\Agent-Init.ps1
 2. Activate venv
-3. Complete the Pre-Flight Checklist in docs/agentic_loop/SYSTEM_PROMPT.md
+3. Complete the Pre-Flight Checklist in agentic_loop_template/SYSTEM_PROMPT.md
 
 ## REQUIRED READING ORDER
-1. docs/agentic_loop/README.md
-2. docs/agentic_loop/SYSTEM_PROMPT.md (version 2.1)
-3. docs/agentic_loop/AGENT_ROLES.md
-4. docs/agentic_loop/HANDOFF_SCHEMA.md
+1. agentic_loop_template/README.md
+2. agentic_loop_template/SYSTEM_PROMPT.md (version 2.1)
+3. agentic_loop_template/AGENT_ROLES.md
+4. agentic_loop_template/HANDOFF_SCHEMA.md
 5. Current specification file
 
 Start as ORCHESTRATOR (temperature 0.0). Follow the full role cycle with PLAN → ACT → REFLECT discipline.
@@ -209,9 +209,9 @@ If the agent loses the environment, tell it:
 
 When starting a serious autonomous session, give the agent access to read:
 
-- `docs/agentic_loop/README.md`
-- `docs/agentic_loop/SYSTEM_PROMPT.md`
-- `docs/agentic_loop/Agent-Init.md`
+- `agentic_loop_template/README.md`
+- `agentic_loop_template/SYSTEM_PROMPT.md`
+- `agentic_loop_template/Agent-Init.md`
 - `TASK_SPECIFICATION.md` (your actual task spec)
 - `pyproject.toml`
 

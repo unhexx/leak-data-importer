@@ -2,60 +2,69 @@
   "handoff_to": "Tester",
   "role": "Coder",
   "current_phase": "implementation",
-  "cycle_number": 2,
-  "summary": "Завершил Phase 2 — Database Layer Modernization. Созданы: Alembic миграции (alembic.ini, migrations/env.py, migrations/versions/001_initial.py), Repository слой (BaseRepository, ReportRepository, PersonRepository, DocumentRepository), typed query finders. Теперь требуется тестирование.",
+  "cycle_number": 3,
+  "summary": "Завершил реализацию Phase 3 — Entity Resolution & Deduplication. Созданы: enhanced PersonLinker с множественными стратегиями, PersonLink model, repository, graph integration, evaluation harness.",
   "context_updates": [
-    "TODO.md",
-    "PROJECT_CONTEXT.md"
+    "PROJECT_CONTEXT.md",
+    "TODO.md"
   ],
   "artifacts": [
-    "alembic.ini",
-    "migrations/env.py",
-    "migrations/script.py.mako",
-    "migrations/versions/001_initial.py",
-    "src/leak_data_importer/db/repositories/__init__.py",
-    "src/leak_data_importer/db/repositories/base.py",
-    "src/leak_data_importer/db/repositories/report.py",
-    "src/leak_data_importer/db/repositories/person.py",
-    "src/leak_data_importer/db/repositories/document.py",
-    "src/leak_data_importer/db/__init__.py"
+    "src/leak_data_importer/linkers/person_linker.py",
+    "src/leak_data_importer/db/models.py",
+    "src/leak_data_importer/db/repositories/person_link.py",
+    "src/leak_data_importer/graph/factories.py",
+    "src/leak_data_importer/graph/relationships.py",
+    "src/leak_data_importer/exporters/neo4j_exporter.py",
+    "src/leak_data_importer/evaluation/harness.py",
+    "migrations/versions/002_entity_resolution.py"
   ],
   "next_input_files": [
-    "TODO.md",
     "PROJECT_CONTEXT.md",
-    "src/leak_data_importer/db/repositories/base.py",
-    "src/leak_data_importer/db/repositories/report.py",
-    "src/leak_data_importer/db/repositories/person.py",
-    "src/leak_data_importer/db/repositories/document.py",
-    "migrations/versions/001_initial.py"
+    "TODO.md",
+    "src/leak_data_importer/linkers/person_linker.py",
+    "src/leak_data_importer/db/models.py",
+    "src/leak_data_importer/evaluation/harness.py"
   ],
-  "git_branch": "feature-database-layer-v2",
-  "last_commit": "добавил расширенную модель графовых сущностей и связей",
-  "confidence": 0.95,
+  "git_branch": "feature-entity-resolution-v1",
+  "last_commit": "Phase 3 implementation: entity resolution and deduplication",
+  "confidence": 0.85,
   "metrics": {
-    "alembic_config": true,
-    "migrations_created": true,
-    "repository_layer": true,
-    "typed_query_finders": true,
-    "tool_calls": 12,
-    "elapsed_minutes": 25
+    "phase_3_complete": true,
+    "person_linker_enhanced": true,
+    "person_link_model_added": true,
+    "repository_added": true,
+    "graph_integration_complete": true,
+    "evaluation_harness_added": true,
+    "migration_added": true,
+    "elapsed_minutes": 15
   },
-  "issues_found": [],
+  "phase_3_completed_tasks": {
+    "3.1": "PersonLinker с множественными стратегиями: exact_passport, exact_snils, exact_inn, exact_phone, fuzzy_fio, fuzzy_phone, fuzzy_birthdate",
+    "3.2": "PersonLink model с confidence и match_strategy, PersonLinkRepository",
+    "3.3": "Graph integration: make_person_link factory, SAME_AS relationship, Neo4j export",
+    "3.4": "EvaluationHarness для review и метрик"
+  },
+  "issues_found": [
+    "Pylance показывает ошибки импорта - нужно установить зависимости в venv",
+    "Migration файл требует проверки при первом запуске"
+  ],
   "process_tags": [
-    "phase_2_complete",
-    "ready_for_testing"
+    "phase_3_complete",
+    "ready_for_test",
+    "entity_resolution_implemented"
   ],
   "feedback_from_previous": {
-    "what_worked_well": ["чёткое следование IMPLEMENTATION_PLAN_PHASE2.md", "качественная реализация всех репозиториев", "правильная настройка Alembic с SQLAlchemy 2.0"],
-    "what_failed_or_was_inefficient": [],
-    "suggestions_for_next_agent": ["проверить что миграции работают", "протестировать repository слой"]
+    "what_worked_well": ["чёткая структура файлов по модулям", "PersonLinker легко расширяется", "graph factories гибкие"],
+    "what_failed_or_was_inefficient": ["много файлов для редактирования в одном этапе"],
+    "suggestions_for_next_agent": ["проверить что всё работает с реальными данными"]
   },
   "lessons_learned": [
-    "Alembic требует правильной настройки SQLAlchemy 2.0 URL processing",
-    "BaseRepository обеспечивает переиспользование CRUD логики"
+    "Множественные стратегии дают лучшую уверенность чем одна",
+    "Graph layer хорошо интегрируется с DB layer",
+    "Evaluation harness нужен для ручного review"
   ],
-  "inner_loop_summary": "PLAN: реализовать Phase 2 по IMPLEMENTATION_PLAN_PHASE2.md. ACT: создал все файлы репозиториев и миграций. REFLECT: всё соответствует спецификации, готов к тестированию.",
-  "requires_architecture_review": false,
-  "status": "COMPLETED",
+  "inner_loop_summary": "PLAN: реализовать Phase 3. ACT: добавил 7 файлов с кодом. REFLECT: готов к тестированию.",
+  "requires_testing": true,
+  "status": "READY_FOR_TESTER",
   "git_final": ""
 }

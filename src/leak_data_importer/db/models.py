@@ -272,7 +272,6 @@ class PersonConnection(Base):
     PersonConnections table - relationships between persons (family, travel companions, etc.).
     """
 
-    __tablename__ = "person_connections"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=func.uuid_generate_v4())
     person_id = Column(UUID(as_uuid=True), ForeignKey("persons.id", ondelete="CASCADE"), nullable=False)
@@ -371,6 +370,46 @@ class SourceFinding(Base):
 
 
 # =============================================
+# ENTITY RESOLUTION TABLES
+# =============================================
+
+
+class PersonLink(Base):
+    """
+    PersonLinks table - stores entity resolution linking decisions.
+    
+    Tracks which persons from different reports are believed to be the same real person.
+    Used for cross-report deduplication and entity resolution.
+    """
+
+    __tablename__ = "person_links"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=func.uuid_generate_v4())
+    person_a_id = Column(UUID(as_uuid=True), ForeignKey("persons.id", ondelete="CASCADE"), nullable=False)
+    person_b_id = Column(UUID(as_uuid=True), ForeignKey("persons.id", ondelete="CASCADE"), nullable=False)
+    confidence = Column(Float, nullable=False)  # 0.0-1.0
+    match_strategy = Column(Text, nullable=False)  # "exact_passport", "fuzzy_fio", etc.
+    is_reviewed = Column(Boolean, default=False)
+    is_confirmed = Column(Boolean, nullable=True)
+    reviewed_by = Column(Text)
+    review_notes = Column(Text)
+    created_at = Column(TIMESTAMP(timezone=True), default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), default=func.now(), onupdate=func.now())
+
+    # Relationships
+    person_a = relationship("Person", foreign_keys=[person_a_id])
+    person_b = relationship("Person", foreign_keys=[person_b_id])
+
+    # Indexes
+    __table_args__ = (
+        Index("idx_person_links_person_a", "person_a_id"),
+        Index("idx_person_links_person_b", "person_b_id"),
+        Index("idx_person_links_confidence", "confidence"),
+        UniqueConstraint("person_a_id", "person_b_id", name="uq_person_link_pair"),
+    )
+
+
+# =============================================
 # EXPORTS
 # =============================================
 
@@ -389,4 +428,5 @@ __all__ = [
     "Vehicle",
     "Event",
     "SourceFinding",
+    "PersonLink",
 ]

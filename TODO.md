@@ -1,33 +1,34 @@
-# TODO - Phase 2 Implementation
+# TODO - Phase 3: Entity Resolution & Deduplication
 
-## Status: COMPLETED ✅
+## Status: PLANNED
 
-### Step 1: Initialize Alembic ✅
-- [x] Create alembic.ini
-- [x] Create migrations/env.py
-- [x] Create migrations/script.py.mako
-- [x] Create migrations/versions/001_initial.py
+### Step 1: Enhance PersonLinker ⏳
+- [ ] Add document number matching (passport, SNILS, INN)
+- [ ] Add phone number partial matching
+- [ ] Add birth date fuzzy matching within tolerance
+- [ ] Add weighted scoring for each strategy
+- [ ] Add strategy report showing matched fields
 
-### Step 2: Create Repository Layer ✅
-- [x] Create src/leak_data_importer/db/repositories/__init__.py
-- [x] Create src/leak_data_importer/db/repositories/base.py
-- [x] Create src/leak_data_importer/db/repositories/report.py
-- [x] Create src/leak_data_importer/db/repositories/person.py
-- [x] Create src/leak_data_importer/db/repositories/document.py
+### Step 2: Add DB Storage for Links ⏳
+- [ ] Create PersonLink SQLAlchemy model
+- [ ] Create PersonLinkRepository
+- [ ] Create migration 002_entity_resolution.py
 
-### Step 3: Add Typed Query Finders ✅
-- [x] Add get_by_filename() to ReportRepository
-- [x] Add get_by_fio() to PersonRepository
-- [x] Add get_by_doc_type_and_number() to DocumentRepository
+### Step 3: Graph Integration ⏳
+- [ ] Add make_person_link() factory function
+- [ ] Modify Neo4j exporter for linked entities
+- [ ] Add SAME_AS relationship export
 
-### Step 4: Update Exports ✅
-- [x] Update src/leak_data_importer/db/__init__.py
+### Step 4: Evaluation Harness ⏳
+- [ ] Create evaluation harness module
+- [ ] Add CLI for manual review
+- [ ] Document limitations and edge cases
 
 ---
 
-## Next Steps
+## Next Steps (Future)
 
-### Testing Phase (Cycle 2) ✅
-- [x] Test repository layer CRUD operations (syntax verified via py_compile)
-- [x] Verify Alembic migration syntax (PASS - structure correct)
-- [x] Run lint and type checks (syntax validation completed)
+### Phase 4: Testing, Quality & PII Safety
+- [ ] Increase test coverage
+- [ ] Add PII handling strategy
+- [ ] Improve normalization
