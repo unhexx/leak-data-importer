@@ -39,15 +39,18 @@ A detailed initial breakdown already exists (see research materials, Section 9).
    . .\.venv\Scripts\Activate.ps1
    ```
 
-3. **Read the following files in this exact order** (primary sources of truth):
+3. **Review the memory output** that `Agent-Init.ps1` automatically printed. This contains the project's accumulated experience — use it heavily when planning Idea #2.
 
-   1. `agentic_loop_template/DEVELOPMENT_STANDARDS.md`
-   2. `agentic_loop_template/AGENT_ROLES.md` (Orchestrator section)
-   3. `SPRINTPLAN.md` (pay special attention to the new strategic section)
-   4. `PROJECT_CONTEXT.md`
-   5. `TODO.md` (especially the "Strategic Product Priorities" section)
-   6. The detailed breakdown of Idea #2 (research plan Section 9 — request the relevant part from the user if needed)
-   7. `IMPLEMENTATION_PLAN_PHASE5.md`
+4. **Read the following files in this exact order** (primary sources of truth):
+
+   1. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` (especially memory section)
+   2. `agentic_loop_template/PROMPT_COMPRESSION_GUIDE.md`
+   3. `agentic_loop_template/AGENT_ROLES.md` (Orchestrator section)
+   4. `SPRINTPLAN.md` (pay special attention to the new strategic section)
+   5. `PROJECT_CONTEXT.md`
+   6. `TODO.md` (especially the "Strategic Product Priorities" section)
+   7. The detailed breakdown of Idea #2 (research plan Section 9 — request the relevant part from the user if needed)
+   8. `IMPLEMENTATION_PLAN_PHASE5.md`
 
 4. **Perform full Project Status Assessment**
    - Run `git status` and review recent changes.
@@ -58,6 +61,10 @@ A detailed initial breakdown already exists (see research materials, Section 9).
 ## Your Primary Mission as Orchestrator (Strategic Focus)
 
 Your main responsibility in this cycle is **high-quality strategic planning** for Idea #2.
+
+You must make heavy use of:
+- The memory system (patterns automatically printed by Agent-Init.ps1 + manual queries)
+- The techniques in `PROMPT_COMPRESSION_GUIDE.md` when creating planning artifacts and guiding future distillation.
 
 You must:
 

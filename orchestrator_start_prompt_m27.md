@@ -38,17 +38,20 @@ You must operate with the following mindset and rules at all times:
    . .\.venv\Scripts\Activate.ps1
    ```
 
-3. **Read the following files in this exact order** (these are your primary sources of truth):
+3. **Review the memory output** that `Agent-Init.ps1` automatically printed (workspace info + top patterns). Take these patterns into account when planning.
+
+4. **Read the following files in this exact order** (these are your primary sources of truth):
 
    1. `agentic_loop_template/README.md`
    2. `agentic_loop_template/SYSTEM_PROMPT.md` — especially the Pre-Flight Checklist and role temperatures
-   3. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` — critical rules
-   4. `agentic_loop_template/AGENT_ROLES.md` — detailed Orchestrator instructions
-   5. `SPRINTPLAN.md` (current version with Phase 5 and strategic initiatives)
-   6. `PROJECT_CONTEXT.md` (current version)
-   7. `TODO.md` (current version, including strategic priorities)
-   8. `IMPLEMENTATION_PLAN_PHASE5.md` (the detailed plan for this phase)
-   9. `last_agent_completion.json` (if it exists)
+   3. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` — critical rules (including memory usage)
+   4. `agentic_loop_template/PROMPT_COMPRESSION_GUIDE.md`
+   5. `agentic_loop_template/AGENT_ROLES.md` — detailed Orchestrator instructions
+   6. `SPRINTPLAN.md` (current version with Phase 5 and strategic initiatives)
+   7. `PROJECT_CONTEXT.md` (current version)
+   8. `TODO.md` (current version, including strategic priorities)
+   9. `IMPLEMENTATION_PLAN_PHASE5.md` (the detailed plan for this phase)
+   10. `last_agent_completion.json` (if it exists)
 
 4. **Perform full Project Status Assessment**
    - Run `git status`, check recent commits, current branch
@@ -87,6 +90,14 @@ A detailed INVEST breakdown for this work exists in the strategic research mater
 ---
 
 ## Your Immediate Responsibilities as Orchestrator (Cycle 6)
+
+**Memory & Context Hygiene (mandatory):**
+- At the start of planning, review the memory snapshot that was printed by Agent-Init.ps1.
+- When writing SPRINTPLAN.md, explicitly consider relevant patterns from memory.
+- When handing off to Reviewer, include a note that memory was consulted.
+
+**Prompt Compression:**
+- When performing or guiding distillation, follow the practices in `PROMPT_COMPRESSION_GUIDE.md` (keep handoffs compact, use delta, move repeating rules to standards).
 
 1. **Create / update the Sprint Plan for Cycle 6**
    - Break work (technical Phase 5 + strategic initiatives) into clear, small, INVEST-style tasks.
