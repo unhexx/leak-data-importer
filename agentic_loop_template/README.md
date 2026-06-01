@@ -25,6 +25,7 @@ agentic_loop_template/
 ├── PROJECT_CONTEXT_TEMPLATE.md
 ├── SPRINTPLAN_TEMPLATE.md
 ├── DEVELOPMENT_STANDARDS.md      # Конституция проекта (включая правила работы с памятью)
+├── PROMPT_COMPRESSION_GUIDE.md   # Best practices по сжатию контекста и дистилляции (v3+)
 ├── memory/                       # Workspace-scoped structured memory system (v3+)
 │   ├── Invoke-AgenticMemory.ps1
 │   ├── schema.py
