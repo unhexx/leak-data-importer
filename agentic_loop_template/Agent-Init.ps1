@@ -1,15 +1,17 @@
 ﻿<#
 .SYNOPSIS
-    Robust initialization script for Blackbox + MiniMax2.5 agentic development in VSCode.
+    Robust initialization script for Blackbox + MiniMax M2.7 agentic development.
 
 .DESCRIPTION
-    Prepares a reliable local Python virtual environment and can generate
-    a ready-to-use starter prompt for Blackbox.
+    Prepares a reliable local Python virtual environment and prints
+    important reminders about key systems in the template.
 
-    Key improvements:
+    Key features:
     - Automatically creates or repairs broken .venv
-    - Clear, step-by-step messages with status
+    - Forces UTF-8 for the session (critical on Russian Windows)
     - Auto-detects task from TODO.md or TASK_SPECIFICATION.md
+    - Prints reminders about the Structured Memory system and Prompt Compression Guide
+    - Generates a ready-to-use starter prompt for the Orchestrator
 #>
 
 [CmdletBinding()]
@@ -78,15 +80,23 @@ function Generate-AgentStarterPrompt {
         "3. Read in this order:",
         "   - agentic_loop_template/README.md",
         "   - agentic_loop_template/SYSTEM_PROMPT.md",
+        "   - agentic_loop_template/DEVELOPMENT_STANDARDS.md",
+        "   - agentic_loop_template/PROMPT_COMPRESSION_GUIDE.md",
         "   - agentic_loop_template/Agent-Init.md",
         "   - $SpecFile",
         "",
-        "4. Start as ORCHESTRATOR according to the SYSTEM_PROMPT.",
+        "4. At the very beginning of your work as ORCHESTRATOR:",
+        "   - Query the structured memory system:",
+        "     & `".\.venv\Scripts\python.exe`" -m agentic_loop_template.memory snapshot",
+        "   - Review relevant patterns before writing SPRINTPLAN.md.",
+        "",
+        "5. Start as ORCHESTRATOR according to the SYSTEM_PROMPT.",
         "",
         "Rules:",
         "- Write all git commits in natural Russian, as a real human developer.",
         "- Never mention AI, LLM, agent, MiniMax, Grok, Claude, etc. in commit messages.",
-        "- Always work inside the local .venv."
+        "- Always work inside the local .venv.",
+        "- Use the memory system and follow the compression guide on every cycle."
     )
 
     return ($lines -join "`r`n")
@@ -97,7 +107,7 @@ function Generate-AgentStarterPrompt {
 # ============================================
 
 Write-Host "=== Agentic Loop Environment Initialization ===" -ForegroundColor Cyan
-Write-Host "Reminder: Before starting work, the agent must complete the Pre-Flight Checklist in SYSTEM_PROMPT.md (version 2.1)." -ForegroundColor DarkGray
+Write-Host "Reminder: Before starting work, complete the Pre-Flight Checklist in SYSTEM_PROMPT.md and review the new systems (Memory + Compression Guide)." -ForegroundColor DarkGray
 Write-Host "Project: $ProjectRoot" -ForegroundColor Gray
 
 # 1. Locate Python
@@ -217,3 +227,24 @@ if ($finalTask) {
 }
 
 Write-Host "`n=== Environment initialization completed successfully ===" -ForegroundColor Green
+
+# ============================================
+# New in this version: Helpful reminders for the Orchestrator
+# (optimized for MiniMax M2.7 long-running cycles)
+# ============================================
+
+Write-Host "`n=== Important Systems Reminder ===" -ForegroundColor Cyan
+Write-Host "This template includes two high-impact systems for long cycles:"
+Write-Host ""
+Write-Host "  1. Workspace-Scoped Structured Memory"
+Write-Host "     Location: agentic_loop_template/memory/"
+Write-Host "     Usage (at the very start of every cycle):"
+Write-Host "       & `".\.venv\Scripts\python.exe`" -m agentic_loop_template.memory snapshot"
+Write-Host "       & `".\.venv\Scripts\python.exe`" -m agentic_loop_template.memory query --top 5 --category 'Common Failure Patterns'"
+Write-Host ""
+Write-Host "  2. Prompt Compression & Distillation Guide"
+Write-Host "     Location: agentic_loop_template/PROMPT_COMPRESSION_GUIDE.md"
+Write-Host "     Strongly recommended reading before performing context distillation (Reviewer role)."
+Write-Host ""
+Write-Host "Both systems are mandatory for high-quality long-running work. See DEVELOPMENT_STANDARDS.md §9 and the guide."
+Write-Host "=================================" -ForegroundColor Cyan
