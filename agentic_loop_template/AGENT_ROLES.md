@@ -1,4 +1,4 @@
-# AGENT ROLES — Detailed Role Instructions (MiniMax2.5)
+# AGENT ROLES — Detailed Role Instructions (MiniMax M2.7)
 
 Insert the appropriate block at the end of the SYSTEM_PROMPT when handing off to a specific role.
 
@@ -22,6 +22,11 @@ IMMEDIATE TASKS (always in this order at the start of a cycle):
      ```json
      {"tool": "powershell", "command": "powershell -ExecutionPolicy Bypass -File .\\scripts\\setup_env.ps1", "purpose": "Bootstrap Python venv and install dependencies"}
      ```
+   - **Обязательно запросить snapshot структурированной памяти** (workspace-scoped):
+     ```powershell
+     & ".\\.venv\\Scripts\\python.exe" -m agentic_loop_template.memory snapshot
+     ```
+     или через PowerShell-обёртку. Просмотреть топ паттернов по релевантным категориям перед планированием.
    - Perform mandatory Project Status Assessment:
      * git status, current branch, recent commits
      * list key directories
@@ -195,6 +200,7 @@ Focus:
 - Check architecture, tests, documentation, and edge cases
 - Decide: DONE or send back to Orchestrator
 - Update PROJECT_CONTEXT.md and SPRINTPLAN.md with lessons learned
+- **Извлечь 1–3 конкретных паттерна и записать их в структурированную память** через Invoke-AgenticMemory.ps1 (см. DEVELOPMENT_STANDARDS.md §9). Обязательно проставить в handoff `memory_updated: true` и `patterns_merged`.
 - **Create the last_agent_completion.json file** (temp + archive in reports/<year>/) as defined in DEVELOPMENT_STANDARDS.md when reaching DONE. Capture the "Task Completed" Markdown you would output in the chat.
 - Enforce Russian human-developer commit style and all rules in DEVELOPMENT_STANDARDS.md (including UTF-8 file writing).
 
