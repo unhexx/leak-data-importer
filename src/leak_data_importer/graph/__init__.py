@@ -31,6 +31,7 @@ from leak_data_importer.graph.relationships import (
     owns_account,
     registered_at,
     related_to,
+    same_as,
 )
 from leak_data_importer.graph.result import ImportGraphResult
 
@@ -60,5 +61,6 @@ __all__ = [
     "located_at",
     "issued_to",
     "related_to",
+    "same_as",
     "ImportGraphResult",
 ]
