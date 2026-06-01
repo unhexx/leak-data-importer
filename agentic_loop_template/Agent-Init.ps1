@@ -238,13 +238,24 @@ Write-Host "This template includes two high-impact systems for long cycles:"
 Write-Host ""
 Write-Host "  1. Workspace-Scoped Structured Memory"
 Write-Host "     Location: agentic_loop_template/memory/"
-Write-Host "     Usage (at the very start of every cycle):"
-Write-Host "       & `".\.venv\Scripts\python.exe`" -m agentic_loop_template.memory snapshot"
-Write-Host "       & `".\.venv\Scripts\python.exe`" -m agentic_loop_template.memory query --top 5 --category 'Common Failure Patterns'"
 Write-Host ""
 Write-Host "  2. Prompt Compression & Distillation Guide"
 Write-Host "     Location: agentic_loop_template/PROMPT_COMPRESSION_GUIDE.md"
-Write-Host "     Strongly recommended reading before performing context distillation (Reviewer role)."
 Write-Host ""
-Write-Host "Both systems are mandatory for high-quality long-running work. See DEVELOPMENT_STANDARDS.md §9 and the guide."
+Write-Host "Both systems are mandatory for high-quality long-running work."
+Write-Host "See DEVELOPMENT_STANDARDS.md §9 and the guide."
 Write-Host "=================================" -ForegroundColor Cyan
+
+# Automatically query and display memory info + top patterns for the Orchestrator
+Write-Host "`n[Memory] Querying workspace memory (auto-called by Agent-Init)..." -ForegroundColor Yellow
+
+try {
+    $info = & ".\\.venv\\Scripts\\python.exe" -m agentic_loop_template.memory info 2>&1
+    Write-Host $info -ForegroundColor DarkGray
+
+    Write-Host "`n[Memory] Top patterns (Common Failure Patterns):" -ForegroundColor Yellow
+    $top = & ".\\.venv\\Scripts\\python.exe" -m agentic_loop_template.memory query --top 5 --category 'Common Failure Patterns' 2>&1
+    Write-Host $top
+} catch {
+    Write-Host "  Memory not yet initialized for this workspace. It will be created on first Reviewer update." -ForegroundColor DarkYellow
+}
