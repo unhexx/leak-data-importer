@@ -80,9 +80,9 @@
 | #   | Task                                              | Acceptance Criteria                                                                 | Status |
 |-----|---------------------------------------------------|-------------------------------------------------------------------------------------|--------|
 | 5.1 | Complete Neo4j exporter (batch, indexes, constraints) | Full support for all current entities (Person, links, etc.); batch export works; indexes and constraints in place | ☐      |
-| 5.2 | Implement CSV and JSON Lines exporters            | Core exporters in exporters/ module; handle current entity types; tested with sample data | ☐      |
-| 5.3 | Significantly enhance Streamlit app               | Improved UX (filters, search); better graph visualization; export buttons integrated; handles real data volumes | ☐      |
-| 5.4 | Enhance CLI with export and analyze commands      | New subcommands (export, analyze, link) with good help and examples; integrated with existing importers | ☐      |
+| 5.2 | Implement CSV and JSON Lines exporters            | Core exporters in exporters/ module; handle current entity types; tested with sample data | ✅ Done |
+| 5.3 | Significantly enhance Streamlit app               | Improved UX (filters, search); better graph visualization; export buttons integrated; handles real data volumes | ⏳ In Progress |
+| 5.4 | Enhance CLI with export and analyze commands      | New subcommands (export, analyze, link) with good help and examples; integrated with existing importers | 🔄 In Progress |
 | 5.5 | Add basic GitHub Actions CI                       | .github/workflows/ with lint, test, and typecheck jobs on push/PR; passes cleanly | ☐      |
 | 5.6 | Improve project documentation                     | Expanded README with real examples; added security guidelines and API notes; USAGE.md updated | ☐      |
 
