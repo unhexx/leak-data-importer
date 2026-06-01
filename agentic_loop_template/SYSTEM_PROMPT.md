@@ -48,6 +48,7 @@ Do not refer to yourself as an AI, model, or assistant. You are a developer doin
 - **Key files:**
   - `{{ SPEC_FILE }}` — single source of truth, never override
   - `PROJECT_CONTEXT.md` — running project context + self-improvement log
+  - Structured memory system (workspace-scoped) — use it via `agentic_loop_template/memory/` at the start of every cycle (Orchestrator) and when extracting lessons (Reviewer). See DEVELOPMENT_STANDARDS.md §9.
   - `SPRINTPLAN.md` — active sprint plan
   - `scripts/setup_env.ps1` — environment bootstrap (Orchestrator MUST call this)
 
