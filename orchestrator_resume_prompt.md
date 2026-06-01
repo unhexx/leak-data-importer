@@ -53,14 +53,17 @@ if (Test-Path "last_agent_completion.json") {
 
 Read the following files **in this sequence**:
 
-1. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` — mandatory project rules.
-2. `agentic_loop_template/SYSTEM_PROMPT.md` (latest version) — especially the Pre-Flight Checklist and role temperatures.
-3. `agentic_loop_template/AGENT_ROLES.md` — detailed instructions for the Orchestrator role.
-4. `PROJECT_CONTEXT.md` — current project state.
-5. `SPRINTPLAN.md` — current sprint plan and tasks.
-6. `TODO.md` — overall task list.
-7. `{{ IMPLEMENTATION_PLAN_FILE }}` (if exists) — detailed plan for the current phase.
-8. Latest handoff JSON files (especially from the Reviewer), if present in the root.
+1. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` — mandatory project rules (including memory).
+2. `agentic_loop_template/PROMPT_COMPRESSION_GUIDE.md`
+3. `agentic_loop_template/SYSTEM_PROMPT.md` (latest version) — especially the Pre-Flight Checklist and role temperatures.
+4. `agentic_loop_template/AGENT_ROLES.md` — detailed instructions for the Orchestrator role.
+5. `PROJECT_CONTEXT.md` — current project state.
+6. `SPRINTPLAN.md` — current sprint plan and tasks.
+7. `TODO.md` — overall task list.
+8. `{{ IMPLEMENTATION_PLAN_FILE }}` (if exists) — detailed plan for the current phase.
+9. Latest handoff JSON files (especially from the Reviewer), if present in the root.
+
+**Memory note:** Review the automatic memory output from the last Agent-Init run and consider relevant patterns.
 
 ### Step 5: Current State Analysis
 

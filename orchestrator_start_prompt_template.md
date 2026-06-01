@@ -36,17 +36,20 @@ You must operate with the following mindset and rules at all times:
    . .\.venv\Scripts\Activate.ps1
    ```
 
-3. **Read the following files in this exact order** (these are your primary sources of truth):
+3. **Review the memory output** that `Agent-Init.ps1` automatically printed. Consider these patterns when planning.
+
+4. **Read the following files in this exact order** (these are your primary sources of truth):
 
    1. `agentic_loop_template/README.md`
    2. `agentic_loop_template/SYSTEM_PROMPT.md` (latest version) — especially the Pre-Flight Checklist and role temperatures
-   3. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` — critical rules
-   4. `agentic_loop_template/AGENT_ROLES.md` — detailed Orchestrator instructions
-   5. `SPRINTPLAN.md` (current version with {{ PHASE_NAME }})
-   6. `PROJECT_CONTEXT.md` (current version)
-   7. `TODO.md` (current version with {{ PHASE_NAME }} section)
-   8. `{{ IMPLEMENTATION_PLAN_FILE }}` (the detailed plan for this phase)
-   9. `last_agent_completion.json` (if it exists — result of the previous agent's work)
+   3. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` — critical rules (including memory)
+   4. `agentic_loop_template/PROMPT_COMPRESSION_GUIDE.md`
+   5. `agentic_loop_template/AGENT_ROLES.md` — detailed Orchestrator instructions
+   6. `SPRINTPLAN.md` (current version with {{ PHASE_NAME }})
+   7. `PROJECT_CONTEXT.md` (current version)
+   8. `TODO.md` (current version with {{ PHASE_NAME }} section)
+   9. `{{ IMPLEMENTATION_PLAN_FILE }}` (the detailed plan for this phase)
+   10. `last_agent_completion.json` (if it exists — result of the previous agent's work)
 
 4. **Perform full Project Status Assessment**
    - Run `git status`, check recent commits, current branch

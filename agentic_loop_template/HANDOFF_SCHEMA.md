@@ -26,6 +26,17 @@
 
   "summary": "Brief description of what was done (1–3 sentences).",
 
+  "context_delta": "Key new facts, decisions, or changes since last handoff (keep very short). Use for incremental updates.",
+  // Strongly recommended for context efficiency.
+
+  "distillation_performed": false,
+  // Set to true if Reviewer performed Context Distillation and appended to long-term memory.
+
+  "memory_updated": false,
+  // Set to true if Reviewer extracted and merged patterns into Workspace-Scoped Structured Memory.
+  "patterns_merged": 0,
+  // Number of new/updated patterns written to memory this cycle.
+
   "context_updates": ["PROJECT_CONTEXT.md", "SPRINTPLAN.md"],
   // Files that were created or significantly updated in this step.
 
@@ -35,7 +46,8 @@
   "next_input_files": [
     "{{ SPEC_FILE }}",
     "PROJECT_CONTEXT.md",
-    "SPRINTPLAN.md"
+    "SPRINTPLAN.md",
+    "DEVELOPMENT_STANDARDS.md"
   ],
   // Files the next role MUST read before starting work.
 
@@ -133,6 +145,7 @@
 5. `cycle_number` ≥ 0, не убывает.
 6. `confidence` в диапазоне `[0.0, 1.0]`.
 7. `status` = `"DONE"` только при `handoff_to` = `"None"`.
+8. При использовании памяти: `memory_updated` и `patterns_merged` должны быть заполнены осмысленно.
 
 ### Типичные ошибки
 | Ошибка | Правильно |
@@ -166,9 +179,12 @@
 {
   "handoff_to": "Coder", "role": "Orchestrator", "current_phase": "planning",
   "cycle_number": 0, "summary": "Подготовил окружение, создал SPRINTPLAN.md с 5 фазами.",
+  "context_delta": "Добавлены разделы по memory и сжатию контекста в стандарты.",
+  "distillation_performed": false,
+  "memory_updated": false, "patterns_merged": 0,
   "context_updates": ["PROJECT_CONTEXT.md", "SPRINTPLAN.md"],
   "artifacts": ["SPRINTPLAN.md", "PROJECT_CONTEXT.md"],
-  "next_input_files": ["TASK_SPECIFICATION.md", "PROJECT_CONTEXT.md", "SPRINTPLAN.md"],
+  "next_input_files": ["TASK_SPECIFICATION.md", "PROJECT_CONTEXT.md", "SPRINTPLAN.md", "DEVELOPMENT_STANDARDS.md"],
   "git_branch": "feature-parser-impl", "last_commit": "Добавил план спринта и обновил контекст",
   "confidence": 0.92, "metrics": {"tests_total":0,"tests_failed":0,"coverage":0.0,"tool_calls":5,"elapsed_minutes":8},
   "issues_found": [], "process_tags": [], "feedback_from_previous": {"what_worked_well":[],"what_failed_or_was_inefficient":[],"suggestions_for_next_agent":[]},
@@ -183,6 +199,9 @@
 {
   "handoff_to": "None", "role": "Reviewer", "current_phase": "finalization",
   "cycle_number": 2, "summary": "Все 48 тестов прошли, покрытие 94%, спецификация выполнена полностью.",
+  "context_delta": "Добавлены итоговые уроки и 3 паттерна в память.",
+  "distillation_performed": true,
+  "memory_updated": true, "patterns_merged": 3,
   "context_updates": ["PROJECT_CONTEXT.md", "README.md", "USAGE.md"],
   "artifacts": ["src/", "tests/", "migrations/", "README.md", "USAGE.md", "pyproject.toml"],
   "next_input_files": [], "git_branch": "main", "last_commit": "Финализировал документацию и смержил в main",

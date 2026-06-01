@@ -36,17 +36,20 @@ You must operate with the following mindset and rules at all times:
    . .\.venv\Scripts\Activate.ps1
    ```
 
-3. **Read the following files in this exact order** (these are your primary sources of truth):
+3. **Review the memory output** that `Agent-Init.ps1` automatically printed (workspace info + top patterns). Consider these patterns during planning.
+
+4. **Read the following files in this exact order** (these are your primary sources of truth):
 
    1. `agentic_loop_template/README.md`
    2. `agentic_loop_template/SYSTEM_PROMPT.md` (version 3) — especially the Pre-Flight Checklist and role temperatures
-   3. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` — critical rules (including the new last_agent_completion.json requirement)
-   4. `agentic_loop_template/AGENT_ROLES.md` — detailed Orchestrator instructions
-   5. `SPRINTPLAN.md` (current version with Phase 5)
-   6. `PROJECT_CONTEXT.md` (current version)
-   7. `TODO.md` (current version with Phase 5 section)
-   8. `IMPLEMENTATION_PLAN_PHASE5.md` (the detailed plan for this phase)
-   9. `last_agent_completion.json` (if it exists — this contains the result of the previous agent's work)
+   3. `agentic_loop_template/DEVELOPMENT_STANDARDS.md` — critical rules (including memory)
+   4. `agentic_loop_template/PROMPT_COMPRESSION_GUIDE.md`
+   5. `agentic_loop_template/AGENT_ROLES.md` — detailed Orchestrator instructions
+   6. `SPRINTPLAN.md` (current version with Phase 5)
+   7. `PROJECT_CONTEXT.md` (current version)
+   8. `TODO.md` (current version with Phase 5 section)
+   9. `IMPLEMENTATION_PLAN_PHASE5.md` (the detailed plan for this phase)
+   10. `last_agent_completion.json` (if it exists — this contains the result of the previous agent's work)
 
 4. **Perform full Project Status Assessment**
    - Run `git status`, check recent commits, current branch
@@ -69,6 +72,12 @@ Main directions (in priority order):
 Detailed breakdown, files, and acceptance criteria are in `IMPLEMENTATION_PLAN_PHASE5.md`.
 
 ## Your Immediate Responsibilities as Orchestrator (Cycle 6)
+
+**Memory & Compression (new requirements):**
+- Review the automatic memory output from Agent-Init.ps1.
+- When planning, take relevant patterns from memory into account.
+- When handing off to Reviewer, note that memory was consulted.
+- Follow `PROMPT_COMPRESSION_GUIDE.md` for efficient context handling.
 
 1. **Create / update the Sprint Plan for Cycle 6**
    - Break Phase 5 into clear, small, INVEST-style tasks.
