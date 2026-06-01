@@ -221,3 +221,71 @@ For starting a new cycle or resuming interrupted work, special prompt files have
 **This document is the single source of truth for development standards in this project.**
 
 When in doubt, re-read this file. The Reviewer will hold all roles accountable to these standards.
+
+---
+
+## 9. Workspace-Scoped Structured Memory (v3+)
+
+**Это один из самых важных инструментов долгосрочного самоулучшения цикла.**
+
+Система хранит структурированные паттерны по категориям со счётчиками, автоматически дедуплицирует и уплотняет записи. Память привязана к workspace ID на основе git remote — она автоматически шарится между всеми клонами и worktree одного репозитория и живёт в `~/.grok/agentic-loop-memory/`.
+
+**Цель**: агент начинает каждый цикл с реальной «институциональной памяти» проекта и перестаёт повторять одни и те же ошибки.
+
+### Обязательные правила использования
+
+**Orchestrator (начало каждого цикла, сразу после Agent-Init.ps1):**
+- Обязательно запросить snapshot (или targeted query) памяти.
+- Просмотреть топ паттернов по релевантным категориям перед написанием SPRINTPLAN.md и проектированием следующих шагов.
+- Учитывать эти паттерны при планировании (явно упомянуть в summary или контексте, если применимо).
+
+**Reviewer (конец каждого цикла, после lessons_learned + Context Distillation):**
+- Извлечь 1–3 конкретных, actionable паттерна из результатов цикла.
+- Вызвать update и записать их в подходящую категорию.
+- В handoff JSON обязательно проставить `memory_updated: true` и `patterns_merged: N` (даже если N=0 — это тоже сигнал).
+
+Память — это **не замена** SELF_IMPROVEMENT_LOG.md. Лог ведёт процессные и мета-уроки, память — конкретные повторяющиеся failure patterns и эффективные приёмы именно этого проекта.
+
+### Рекомендуемые категории (стартовый набор)
+- Common Failure Patterns
+- Windows & PowerShell Gotchas
+- Testing & Quality Strategies
+- Context & Prompt Hygiene
+- Project-Specific Architectural Decisions
+
+Можно добавлять свои — главное, чтобы описание было конкретным и полезным для будущих циклов.
+
+### Как использовать (рабочие примеры)
+
+**Правильный способ (рекомендуется):**
+```powershell
+# Информация о текущем workspace и файле памяти
+& '.\agentic_loop_template\memory\Invoke-AgenticMemory.ps1' info
+
+# Получить snapshot (самый частый вызов в начале цикла)
+$mem = & '.\agentic_loop_template\memory\Invoke-AgenticMemory.ps1' snapshot | ConvertFrom-Json
+
+# Целенаправленный запрос топ-паттернов
+& ".\\.venv\\Scripts\\python.exe" -m agentic_loop_template.memory query --top 5 --category 'Common Failure Patterns'
+
+# Записать паттерн (Reviewer)
+& '.\agentic_loop_template\memory\Invoke-AgenticMemory.ps1' update `
+    -Category 'Windows & PowerShell Gotchas' `
+    -Description 'Never use %LOCALAPPDATA% or manual site-packages guessing — always call Get-PythonEnvironmentReport from Agent-Init.ps1'
+```
+
+Прямой вызов Python (когда venv уже активирован):
+```powershell
+& ".\\.venv\\Scripts\\python.exe" -m agentic_loop_template.memory snapshot
+& ".\\.venv\\Scripts\\python.exe" -m agentic_loop_template.memory query --top 3
+```
+
+Полная документация, механика workspace ID, формат файла и примеры seeding из старых логов — в `agentic_loop_template/memory/README.md`.
+
+**Reviewer несёт персональную ответственность** за то, чтобы память реально использовалась и пополнялась. Нарушение этого правила — серьёзное нарушение процесса.
+
+---
+
+**This document is the single source of truth for development standards in this project.**
+
+When in doubt, re-read this file. The Reviewer will hold all roles accountable to these standards.
