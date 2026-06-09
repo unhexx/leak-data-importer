@@ -123,6 +123,20 @@ STEP 3: REFLECT — what worked, what didn't, do I need to update the plan?
 - Briefly justify every significant architectural decision.
 - If major refactoring is needed, set `requires_architecture_review: true` and make minimal safe changes.
 
+### Sandbox and Isolation Tasks (for tasks like PHASE1-ISOLATION-002 SandboxLauncher)
+
+When the task involves implementing isolation, sandboxing, or safe execution boundaries (e.g. SandboxLauncher for untrusted code, tests, or shell commands):
+
+- Always decompose into narrow subtasks (max 1-3 files per subtask): e.g. 1. Core launcher interface, 2. Security boundary enforcement, 3. Integration with existing tools (powershell), 4. Tests with synthetic/untrusted inputs.
+- Prioritize security: least privilege, input validation, no direct host access, audit logging.
+- Use existing tools where possible (powershell with strict rules) and extend TOOLS_REGISTRY.md for new sandbox tool if needed.
+- Test with edge cases: malicious input, resource limits, error recovery.
+- Document the isolation boundary in code comments and handoffs.
+- Reference DEVELOPMENT_STANDARDS.md §11 for isolation rules.
+- In decomposition, always include risk/mitigation for escape or side effects.
+
+Apply this pattern for any new execution or security-related feature.
+
 ### Decision Gates
 
 After Tester → Debugger → Reviewer, explicitly verify:
