@@ -20,8 +20,8 @@ class TestTxtReportImporterBasics:
 
     @pytest.fixture
     def sample_file(self) -> Path:
-        """Путь к тестовому файлу."""
-        return Path(__file__).parent / "fixtures" / "sample_report.txt"
+        """Путь к тестовому файлу (используем безопасный синтетический фикстур)."""
+        return Path(__file__).parent / "fixtures" / "synthetic_minimal.txt"
 
     def test_importer_initialization(self, sample_file: Path):
         """Тест инициализации импортера."""
@@ -66,8 +66,8 @@ class TestImportPipeline:
 
     @pytest.fixture
     def sample_file(self) -> Path:
-        """Путь к тестовому файлу."""
-        return Path(__file__).parent / "fixtures" / "sample_report.txt"
+        """Путь к тестовому файлу (используем безопасный синтетический фикстур)."""
+        return Path(__file__).parent / "fixtures" / "synthetic_minimal.txt"
 
     def test_full_pipeline_iteration(self, sample_file: Path):
         """Тест полного цикла итерации по записям."""
@@ -124,8 +124,8 @@ class TestEdgeCases:
 
     @pytest.fixture
     def sample_file(self) -> Path:
-        """Путь к тестовому файлу."""
-        return Path(__file__).parent / "fixtures" / "sample_report.txt"
+        """Путь к тестовому файлу (используем безопасный синтетический фикстур)."""
+        return Path(__file__).parent / "fixtures" / "synthetic_minimal.txt"
 
     def test_nonexistent_file(self):
         """Тест обработки несуществующего файла."""
@@ -162,8 +162,8 @@ class TestDataIntegrity:
 
     @pytest.fixture
     def sample_file(self) -> Path:
-        """Путь к тестовому файлу."""
-        return Path(__file__).parent / "fixtures" / "sample_report.txt"
+        """Путь к тестовому файлу (используем безопасный синтетический фикстур)."""
+        return Path(__file__).parent / "fixtures" / "synthetic_minimal.txt"
 
     def test_record_deduplication(self, sample_file: Path):
         """Тест дедупликации данных в записях."""

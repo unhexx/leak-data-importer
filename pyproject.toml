@@ -29,6 +29,7 @@ dependencies = [
     "charset-normalizer>=3.3",   # Excellent encoding detection for messy Russian leak dumps
     "pydantic>=2.7",
     "rapidfuzz>=3.0",             # Fast fuzzy string matching for person resolution
+    "python-dateutil>=2.8",       # Required by parsers/normalization and some tests (date parsing)
 ]
 
 [project.optional-dependencies]

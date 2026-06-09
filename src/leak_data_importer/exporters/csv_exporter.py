@@ -34,7 +34,12 @@ class CSVExporter(BaseExporter):
             relationships.csv
 
     Каждая сущность получает колонки: id, type, canonical_key, source_refs + все свои properties.
+    Поддерживает entity_types= для фильтрации (через конструктор или опции).
     """
+
+    def __init__(self, redaction_level: str = "standard", entity_types: list[str] | None = None, **options: Any):
+        super().__init__(redaction_level=redaction_level, **options)
+        self.entity_types = entity_types
 
     def export(
         self,
@@ -58,11 +63,17 @@ class CSVExporter(BaseExporter):
 
         entities, relationships = self.get_entities_and_relationships(result)
 
+        # Фильтрация по типам, если указана (поддержка entity_types= в конструкторе/экспорте)
+        if getattr(self, "entity_types", None):
+            entities = self.filter_entities(entities, self.entity_types)
+
         # Группируем сущности по типу
         entities_by_type: dict[str, list[dict]] = defaultdict(list)
         for entity in entities:
+            # entity может быть dict после фильтра
+            etype = entity.get("type") if isinstance(entity, dict) else getattr(entity, "type", "unknown")
             serialized = self._safe_serialize_entity(entity)
-            entities_by_type[entity.type].append(serialized)
+            entities_by_type[etype].append(serialized)
 
         created_files: list[str] = []
 

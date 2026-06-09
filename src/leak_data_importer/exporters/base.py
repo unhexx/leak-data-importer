@@ -89,7 +89,7 @@ class BaseExporter(ABC):
                 except Exception:
                     logger.warning("Redaction failed for field %s, using masked value", key)
                     return "***"
-        # Дополнительная эвристика по содержимому
+        # Дополнительная эвристика по содержимому (высокорисковые)
         if "@" in value and "email" in self.redactors:
             return self.redactors["email"](value)
         digits = "".join(c for c in value if c.isdigit())
@@ -97,6 +97,12 @@ class BaseExporter(ABC):
             return self.redactors["phone"](value)
         if len(digits) == 10 and "inn" in self.redactors:
             return self.redactors["inn"](value)
+        # Лёгкое маскирование ФИО (LOW RISK, но полезно для тестов и безопасности)
+        if ("full_name" in hint or "fio" in hint or "name" in hint) and " " in value:
+            parts = value.split()
+            if len(parts) >= 2:
+                # Оставляем фамилию, маскируем остальное
+                return parts[0] + " " + " ".join("***" for _ in parts[1:])
         return value
 
     def _safe_write_json(self, path: Path, data: Any) -> None:
@@ -126,6 +132,15 @@ class BaseExporter(ABC):
         if hasattr(result, "entities") and hasattr(result, "relationships"):
             return list(result.entities), list(result.relationships)
         return [], []
+
+    def filter_entities(self, entities: list[Any], entity_types: list[str] | None = None) -> list[Any]:
+        """Простая фильтрация сущностей по типам (поддержка для тестов и CLI)."""
+        if entity_types is None:
+            entity_types = getattr(self, "entity_types", None)
+        if not entity_types:
+            return list(entities)
+        wanted = {t.lower() for t in entity_types}
+        return [e for e in entities if getattr(e, "type", "").lower() in wanted or (isinstance(e, dict) and str(e.get("type", "")).lower() in wanted)]
 
     def _safe_serialize_entity(self, entity: Any) -> dict[str, Any]:
         """Сериализует сущность с применением редактирования PII."""
