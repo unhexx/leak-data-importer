@@ -100,80 +100,84 @@ def cmd_import(args: argparse.Namespace) -> int:
 
 
 def cmd_export(args: argparse.Namespace) -> int:
-    """Обработка команды export (главная новая функциональность)."""
-    from leak_data_importer.exporters import (
-        CSVExporter,
-        EXPORTER_REGISTRY,
-        JSONLinesExporter,
-    )
+    """Обработка команды export — полноценный экспорт в CSV / JSON Lines.
+
+    Поддерживает два режима:
+    - Прямой экспорт из отчёта утечки (--input report_*.txt) — запускает импортёр + parse_to_graph на лету.
+    - Экспорт из ранее сохранённого JSON-результата (с ключами entities/graph).
+    """
+    from leak_data_importer.exporters import EXPORTER_REGISTRY
+    from leak_data_importer.importers.txt_report import TxtReportImporter
 
     print(f"leak-data-importer v{get_version()}")
-    print(f"[INFO] Экспорт в формат: {args.format}")
+    print(f"[INFO] Формат экспорта: {args.format}")
 
-    # Пока для демонстрации работаем с уже готовым графом
-    # В будущем здесь будет загрузка из БД или запуск импорта + экспорт на лету
     if not args.input:
-        print("[ERROR] Для экспорта требуется --input (путь к сохранённому результату или директории)")
-        print("        Пока поддерживается только экспорт ранее полученного ImportGraphResult")
+        print("[ERROR] Требуется --input (путь к отчёту .txt или к JSON с результатом графа)")
         return 1
 
     input_path = Path(args.input)
     output_path = Path(args.output)
 
-    # Простая заглушка: если пользователь передаёт JSON с сущностями — используем его
-    # Настоящая интеграция с ImportGraphResult будет в следующих итерациях
     try:
-        if input_path.is_dir():
-            print("[INFO] Обнаружена директория. Поиск сохранённых результатов...")
-            # Пока не реализовано — просим явный файл
-            print("[ERROR] Прямой экспорт из директории пока не поддерживается. Укажите файл.")
-            return 1
+        # === Режим 1: прямой импорт из исходного отчёта утечки ===
+        if input_path.suffix.lower() in (".txt",) or input_path.name.startswith("report_") or input_path.name.startswith("synthetic"):
+            print(f"[INFO] Распознан исходный отчёт. Запускаем импорт + экспорт на лету: {input_path}")
+            importer = TxtReportImporter(input_path)
+            result = importer.parse_to_graph()
+            print(f"[INFO] Получено сущностей: {len(result.graph.entities)}, связей: {len(result.graph.relationships)}")
 
-        # Пробуем загрузить как результат (в будущем — настоящая десериализация)
-        print(f"[INFO] Чтение результата из {input_path}")
+        # === Режим 2: загрузка ранее сохранённого результата (JSON) ===
+        else:
+            if input_path.is_dir():
+                print("[ERROR] Прямой экспорт из директории пока не поддерживается. Укажите файл.")
+                return 1
 
-        # Временная упрощённая реализация: если это не JSON с графом — ругаемся дружелюбно
-        with input_path.open(encoding="utf-8") as f:
-            raw = json.load(f)
+            print(f"[INFO] Чтение сохранённого результата из {input_path}")
+            with input_path.open(encoding="utf-8") as f:
+                raw = json.load(f)
 
-        # Проверяем, похож ли это на наш формат
-        if "entities" not in raw and "graph" not in raw:
-            print("[WARN] Файл не похож на сохранённый ImportGraphResult.")
-            print("       Для полноценного экспорта сначала нужно доработать сохранение результатов импорта.")
-            return 1
+            if "entities" not in raw and "graph" not in raw:
+                print("[ERROR] Файл не похож на сохранённый результат графа (нужен JSON с 'entities'/'graph').")
+                print("        Для прямого экспорта из отчёта используйте .txt файл как --input.")
+                return 1
 
-        # Создаём минимальный объект, совместимый с экспортёрами (временное решение)
-        class SimpleGraphResult:
-            def __init__(self, data: dict):
-                self.graph = type("G", (), {
-                    "entities": data.get("entities", []),
-                    "relationships": data.get("relationships", []),
-                })()
-                self.flat_records = data.get("flat_records", [])
-                self.stats = data.get("stats", {})
+            # Минимальная обёртка, совместимая с экспортёрами
+            class SimpleGraphResult:
+                def __init__(self, data: dict):
+                    g = data.get("graph", data)
+                    self.graph = type("G", (), {
+                        "entities": g.get("entities", data.get("entities", [])),
+                        "relationships": g.get("relationships", data.get("relationships", [])),
+                    })()
+                    self.flat_records = data.get("flat_records", [])
+                    self.stats = data.get("stats", {})
 
-        result = SimpleGraphResult(raw)
+            result = SimpleGraphResult(raw)
 
-        # Выбираем экспортёр
-        exporter_cls = EXPORTER_REGISTRY.get(args.format)
+        # Выбор экспортёра
+        exporter_cls = EXPORTER_REGISTRY.get(args.format) or EXPORTER_REGISTRY.get("csv")
         if not exporter_cls:
-            print(f"[ERROR] Неизвестный формат экспорта: {args.format}")
-            print(f"        Доступны: {list(EXPORTER_REGISTRY.keys())}")
+            print(f"[ERROR] Неизвестный формат: {args.format}. Доступны: {list(EXPORTER_REGISTRY.keys())}")
             return 1
 
         exporter = exporter_cls(
-            redact_pii=not args.no_redact,
-            entity_types=args.entity_types.split(",") if args.entity_types else None,
+            redact_pii=not getattr(args, "no_redact", False),
+            entity_types=args.entity_types.split(",") if getattr(args, "entity_types", None) else None,
         )
 
         metrics = exporter.export(result, output_path)
+
         print("\n[SUCCESS] Экспорт завершён")
         print(f"  Сущностей: {metrics.get('entities_exported', 0)}")
         print(f"  Связей:    {metrics.get('relationships_exported', 0)}")
         print(f"  Файлы:     {metrics.get('files_created', [])}")
+        print(f"  Выход:     {output_path}")
 
     except Exception as e:
         print(f"[ERROR] Ошибка экспорта: {e}")
+        import traceback
+        traceback.print_exc()
         return 1
 
     return 0
