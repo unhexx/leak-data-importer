@@ -176,4 +176,7 @@ class BaseExporter(ABC):
         return d
 
 
-__all__ = ["BaseExporter", "get_default_redactors"]
+# Константы, ожидаемые тестами экспортёров (PII поля для маскирования/аудита)
+PII_SENSITIVE_FIELDS = ("passport", "snils", "inn", "foreign_passport", "phone", "email")
+
+__all__ = ["BaseExporter", "get_default_redactors", "PII_SENSITIVE_FIELDS"]
