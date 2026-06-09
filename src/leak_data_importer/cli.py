@@ -235,4 +235,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # Защита от проблем с кодировкой на Windows (русские help-тексты)
+    import os
+    os.environ.setdefault("PYTHONIOENCODING", "utf-8")
     sys.exit(main())
