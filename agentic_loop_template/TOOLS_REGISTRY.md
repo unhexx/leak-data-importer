@@ -39,13 +39,36 @@ The model emits a JSON object. Your local runner executes it and returns the res
 
 ## Core Tools
 
-### `powershell` — Execute commands in Windows PowerShell
+### `powershell` — Execute commands in Windows PowerShell (primary execution tool on Windows)
 
 | Field         | Type   | Required | Description |
 |---------------|--------|----------|-------------|
-| `command`     | string | yes      | PowerShell command to execute |
+| `command`     | string | yes      | **PowerShell command** (use PowerShell syntax only — never bash) |
 | `working_dir` | string | no       | Working directory (default: project root) |
 | `timeout_sec` | int    | no       | Timeout in seconds (default: 120) |
+
+**Critical Rules (enforced by Reviewer):**
+- **Always** use native PowerShell cmdlets and Windows paths (`\`, `Get-ChildItem`, `Remove-Item`, `Get-Content -Tail`, `Select-String` etc.).
+- Never put bash syntax (`ls`, `rm -f`, `tail`, `head`, `2>&1 | cat`, `||`, `&&` in bash form) inside `command`.
+- Always activate venv explicitly when running Python: `.\.venv\Scripts\Activate.ps1`
+- Run Python only via `.\.venv\Scripts\python.exe` (never bare `python`).
+- For risky or untrusted operations — prefer or combine with future `SandboxLauncher` / isolated execution (see Isolation section below).
+- Include clear `"purpose"` in every call.
+
+**PowerShell Best Practices & Common Equivalents (use these patterns)**
+
+| Goal                        | Correct PowerShell (use this)                          | Common mistake (do NOT use)     |
+|-----------------------------|-------------------------------------------------------|---------------------------------|
+| List files                  | `Get-ChildItem -Force .` or `ls` (alias after profile) | `ls -la`                        |
+| Remove file/dir             | `Remove-Item -Force -Recurse path`                    | `rm -rf path`                   |
+| Tail log (last N lines)     | `Get-Content path -Tail 20`                           | `tail -20 path`                 |
+| Search in output            | `... \| Select-String "pattern"`                      | `... \| grep "pattern"`         |
+| Redirect + capture          | `command 2>&1 \| Out-String`                          | `command 2>&1 \| cat`           |
+| Conditional chaining        | Use `if` / `try/catch` or `; if ($LASTEXITCODE -eq 0)` | bash `&&` / `\|\|`              |
+| Run script                  | `powershell -ExecutionPolicy Bypass -File .\script.ps1` | direct bash                     |
+
+**Isolation & Sandboxing Note (for SandboxLauncher tasks):**
+When implementing or using isolation/sandbox features (e.g. PHASE1-ISOLATION-002 SandboxLauncher), route dangerous commands through the sandbox tool instead of raw `powershell` when available. Document the sandbox boundary in the `"purpose"` field.
 
 **Best Practice Examples:**
 
@@ -60,16 +83,12 @@ The model emits a JSON object. Your local runner executes it and returns the res
 ```json
 {
   "tool": "powershell",
-  "command": "git status --porcelain",
-  "purpose": "Check for uncommitted changes before major implementation"
+  "command": "Get-ChildItem -Force . | Select-String 'error' -Context 2",
+  "purpose": "Safely inspect recent build output for errors using native PowerShell"
 }
 ```
 
-**Rules:**
-- Always use Windows path separators (`\`)
-- Activate venv explicitly: `.\.venv\Scripts\Activate.ps1`
-- Run Python via: `.\.venv\Scripts\python.exe`
-- Prefer full commands over interactive mode
+**When adding new execution patterns:** always add both a correct example **and** the equivalent wrong pattern to this table.
 
 ---
 
