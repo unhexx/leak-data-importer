@@ -1,0 +1,8 @@
+{
+  "consumed_by_prompt2": true,
+  "consumed_at": "2026-06-09T21:15:00+03:00",
+  "improvement_applied": {
+    "file": "agentic_loop_template/TOOLS_REGISTRY.md",
+    "description": "Добавлена подробная секция PowerShell Best Practices + Isolation/Sandbox note для поддержки задач типа PHASE1-ISOLATION-002 (SandboxLauncher)"
+  }
+}
