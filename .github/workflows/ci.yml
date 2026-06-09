@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install package with dev + graph extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,graph]"
+
+      - name: Ruff lint + format check
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: MyPy type check
+        run: mypy src
+
+      - name: Run tests (non-db parts)
+        run: |
+          # Репозиторные тесты требуют PostgreSQL — пропускаем их здесь
+          # (они документированы как pre-existing JSONB/SQLite issue)
+          python -m pytest tests/ -q --ignore=tests/test_repositories.py -k "not repositories"
+
+      - name: CLI smoke (exporters)
+        run: |
+          # Проверяем, что экспорт из синтетического отчёта работает
+          python -m pip install -e ".[dev,graph]"
+          leak-data-importer export csv --input tests/fixtures/synthetic_minimal.txt --output /tmp/ci_export_csv/ --entity-types person
+          ls /tmp/ci_export_csv/
+          leak-data-importer export jsonlines --input tests/fixtures/synthetic_minimal.txt --output /tmp/ci_export_jl/
+          ls /tmp/ci_export_jl/
