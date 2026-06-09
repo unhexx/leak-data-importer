@@ -1,0 +1,33 @@
+{
+  "handoff_version": "1.0",
+  "from_role": "Orchestrator",
+  "to_role": "Coder",
+  "timestamp": "2026-01-01T00:00:00Z",
+  "cycle_number": 1,
+  
+  "task_description": "Описание задачи для реализации",
+  "acceptance_criteria": [
+    "Критерий 1",
+    "Критерий 2",
+    "Критерий 3"
+  ],
+  
+  "context_files": [
+    "file1.py",
+    "file2.py",
+    "tests/conftest.py"
+  ],
+  
+  "constraints": [
+    "Только .venv",
+    "UTF-8 encoding",
+    "Русские комментарии в коде",
+    "Без упоминаний AI/LLM"
+  ],
+  
+  "temperature": 0.2,
+  
+  "previous_attempts": [],
+  
+  "notes": "Дополнительные указания"
+}

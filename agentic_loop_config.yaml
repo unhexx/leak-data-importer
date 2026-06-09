@@ -1,0 +1,90 @@
+# Configuration for Agentic Development Cycle
+
+## Cycle Settings
+cycle:
+  # Maximum number of cycles before forcing stop
+  max_cycles: 10
+  
+  # Whether to allow cycle continuation after approval
+  allow_continuation: true
+  
+  # Self-improvement tracking
+  track_improvements: true
+
+## Role Temperature Settings
+# Deterministic roles (temperature = 0.0)
+roles:
+  orchestrator:
+    temperature: 0.0
+    description: "Планирование и координация — нужна детерминистическая работа"
+  
+  reviewer:
+    temperature: 0.0
+    description: "Объективная оценка качества — без креативности"
+
+# Creative roles (temperature = 0.2)
+  coder:
+    temperature: 0.2
+    description: "Реализация — нужна некоторая креативность"
+  
+  tester:
+    temperature: 0.2
+    description: "Написание тестов — нужна креативность"
+  
+  debugger:
+    temperature: 0.2
+    description: "Отладка — нужна креативность для сложных багов"
+
+## Quality Gates
+quality_gates:
+  # Minimum test coverage percentage
+  min_coverage: 70
+  
+  # Maximum allowed lint warnings
+  max_lint_warnings: 0
+  
+  # Required checks before approval
+  required_checks:
+    - ruff_format
+    - ruff_lint
+    - mypy_types
+    - pytest_tests
+
+## Environment Settings
+environment:
+  # Python virtual environment
+  venv_path: ".venv"
+  
+  # Activation command (Windows)
+  activate_windows: ".venv\\Scripts\\activate"
+  
+  # Activation command (Unix)
+  activate_unix: "source .venv/bin/activate"
+  
+  # Package manager
+  package_manager: "pip"
+
+## File Patterns
+file_patterns:
+  # Source files
+  source: "src/**/*.py"
+  
+  # Test files
+  tests: "tests/**/*.py"
+  
+  # Documentation
+  docs: "docs/**/*.md"
+
+## Self-Improvement Settings
+self_improvement:
+  # Log file location
+  log_file: "self_improvement_log.md"
+  
+  # Track cycle metrics
+  track_metrics: true
+  
+  # Record lessons learned
+  record_lessons: true
+  
+  # Update configuration based on learnings
+  update_config: true

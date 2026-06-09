@@ -1,70 +1,28 @@
 {
-  "handoff_to": "Tester",
-  "role": "Coder",
-  "current_phase": "implementation",
-  "cycle_number": 3,
-  "summary": "Завершил реализацию Phase 3 — Entity Resolution & Deduplication. Созданы: enhanced PersonLinker с множественными стратегиями, PersonLink model, repository, graph integration, evaluation harness.",
-  "context_updates": [
-    "PROJECT_CONTEXT.md",
-    "TODO.md"
+  "handoff_version": "1.0",
+  "from_role": "Coder",
+  "to_role": "Tester",
+  "timestamp": "2026-01-01T00:00:00Z",
+  "cycle_number": 1,
+  
+  "implemented_files": [
+    "src/module1.py",
+    "src/module2.py"
   ],
-  "artifacts": [
-    "src/leak_data_importer/linkers/person_linker.py",
-    "src/leak_data_importer/db/models.py",
-    "src/leak_data_importer/db/repositories/person_link.py",
-    "src/leak_data_importer/graph/factories.py",
-    "src/leak_data_importer/graph/relationships.py",
-    "src/leak_data_importer/exporters/neo4j_exporter.py",
-    "src/leak_data_importer/evaluation/harness.py",
-    "migrations/versions/002_entity_resolution.py"
+  
+  "test_needs": [
+    "Тест создания объекта",
+    "Тест валидации данных",
+    "Тест граничных условий"
   ],
-  "next_input_files": [
-    "PROJECT_CONTEXT.md",
-    "TODO.md",
-    "src/leak_data_importer/linkers/person_linker.py",
-    "src/leak_data_importer/db/models.py",
-    "src/leak_data_importer/evaluation/harness.py"
+  
+  "acceptance_criteria": [
+    "Объект создаётся с корректными данными",
+    "Валидация отклоняет неверные данные",
+    "Граничные условия обрабатываются правильно"
   ],
-  "git_branch": "feature-entity-resolution-v1",
-  "last_commit": "Phase 3 implementation: entity resolution and deduplication",
-  "confidence": 0.85,
-  "metrics": {
-    "phase_3_complete": true,
-    "person_linker_enhanced": true,
-    "person_link_model_added": true,
-    "repository_added": true,
-    "graph_integration_complete": true,
-    "evaluation_harness_added": true,
-    "migration_added": true,
-    "elapsed_minutes": 15
-  },
-  "phase_3_completed_tasks": {
-    "3.1": "PersonLinker с множественными стратегиями: exact_passport, exact_snils, exact_inn, exact_phone, fuzzy_fio, fuzzy_phone, fuzzy_birthdate",
-    "3.2": "PersonLink model с confidence и match_strategy, PersonLinkRepository",
-    "3.3": "Graph integration: make_person_link factory, SAME_AS relationship, Neo4j export",
-    "3.4": "EvaluationHarness для review и метрик"
-  },
-  "issues_found": [
-    "Pylance показывает ошибки импорта - нужно установить зависимости в venv",
-    "Migration файл требует проверки при первом запуске"
-  ],
-  "process_tags": [
-    "phase_3_complete",
-    "ready_for_test",
-    "entity_resolution_implemented"
-  ],
-  "feedback_from_previous": {
-    "what_worked_well": ["чёткая структура файлов по модулям", "PersonLinker легко расширяется", "graph factories гибкие"],
-    "what_failed_or_was_inefficient": ["много файлов для редактирования в одном этапе"],
-    "suggestions_for_next_agent": ["проверить что всё работает с реальными данными"]
-  },
-  "lessons_learned": [
-    "Множественные стратегии дают лучшую уверенность чем одна",
-    "Graph layer хорошо интегрируется с DB layer",
-    "Evaluation harness нужен для ручного review"
-  ],
-  "inner_loop_summary": "PLAN: реализовать Phase 3. ACT: добавил 7 файлов с кодом. REFLECT: готов к тестированию.",
-  "requires_testing": true,
-  "status": "READY_FOR_TESTER",
-  "git_final": ""
+  
+  "test_framework": "pytest",
+  
+  "notes": "Дополнительные указания для тестирования"
 }

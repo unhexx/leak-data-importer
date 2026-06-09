@@ -1,0 +1,44 @@
+{
+  "tracker_version": "1.0",
+  "project": "agentic-development-cycle",
+  "current_cycle": 1,
+  "max_cycles": 10,
+  
+  "cycle_history": [],
+  
+  "active_task": {
+    "id": null,
+    "description": null,
+    "status": "waiting",
+    "started_at": null
+  },
+  
+  "role_handoffs": {
+    "orchestrator": {
+      "last_active": null,
+      "tasks_completed": 0
+    },
+    "coder": {
+      "last_active": null,
+      "tasks_completed": 0
+    },
+    "tester": {
+      "last_active": null,
+      "tasks_completed": 0
+    },
+    "debugger": {
+      "last_active": null,
+      "tasks_completed": 0
+    },
+    "reviewer": {
+      "last_active": null,
+      "tasks_completed": 0
+    }
+  },
+  
+  "metrics": {
+    "total_tasks_completed": 0,
+    "average_cycles_per_task": 0,
+    "success_rate": 0
+  }
+}

@@ -1,140 +1,113 @@
-# leak-data-importer
+# Self-Improving Multi-Role Agentic Development Cycle
 
-A Python tool for securely importing, normalizing, and processing leaked or sensitive data sets.
+> Шаблон для организации разработки через 5 ролей: Orchestrator → Coder → Tester → Debugger → Reviewer
 
-> **Security Notice**: This tool is intended for legitimate security research, incident response, and data recovery scenarios only. Never use it to handle data you do not have explicit authorization to process. Always follow applicable laws and data protection regulations (GDPR, etc.).
+## Overview
 
-## Features (Roadmap)
+Этот шаблон реализует самоулучшающийся цикл разработки с пятью специализированными ролями. Каждая роль имеет чётко определённые обязанности и передаёт задачу следующей роли через JSON-handoff.
 
-- Import data from various leak formats (CSV, JSON, SQL dumps, archives)
-- Data normalization and schema mapping
-- Deduplication and enrichment pipelines
-- Safe handling of PII / sensitive fields (hashing, tokenization)
-- Export to databases, data lakes, or analysis tools
-- CLI + optional library usage
+## Роли
 
-## Quick Start
+| Роль | Описание | Температура |
+|------|-----------|--------------|
+| **Orchestrator** | Планирование, декомпозиция задач, координация цикла | 0.0 |
+| **Coder** | Реализация кода | 0.2 |
+| **Tester** | Написание тестов | 0.2 |
+| **Debugger** | Отладка и исправление ошибок | 0.2 |
+| **Reviewer** | Проверка качества, финальное утверждение | 0.0 |
 
-### 1. Clone & Environment
-
-```bash
-git clone https://github.com/unhexx/leak-data-importer.git
-cd leak-data-importer
-
-# Create and activate virtual environment
-python -m venv .venv
-# Windows (PowerShell)
-.venv\Scripts\Activate.ps1
-# Linux/macOS
-source .venv/bin/activate
-
-# Install in editable mode
-pip install -e ".[dev]"
-```
-
-### 2. Usage
-
-```bash
-leak-data-importer --help
-```
-
-Example (placeholder):
-
-```bash
-leak-data-importer import --source ./data/raw/leak.csv --format csv --output ./data/processed/
-```
-
-## Project Structure
+## Workflow
 
 ```
-leak-data-importer/
-├── src/
-│   └── leak_data_importer/
-│       ├── __init__.py
-│       └── cli.py
-├── data/
-│   ├── raw/          # NEVER commit real leak data here
-│   └── processed/
-├── pyproject.toml
-├── README.md
-└── .gitignore
+┌─────────────┐     ┌─────────┐     ┌─────────┐     ┌──────────┐     ┌─────────┐
+│ Orchestrator│────→│  Coder  │────→│ Tester  │────→│ Debugger │────→│ Reviewer│
+└─────────────┘     └─────────┘     └─────────┘     └──────────┘     └─────────┘
+       ↑                                                                 │
+       │                    handoff_*.json                              │
+       └───────────────────────────────────────────────────────────────┘
 ```
 
-## Development
+### Цикл работы
 
-- Python >= 3.10
-- Use `ruff` for linting/formatting
-- Tests with `pytest`
+1. **Orchestrator** получает задачу, декомпозирует её, передаёт Coder
+2. **Coder** реализует код, передаёт Tester
+3. **Tester** пишет тесты, передаёт Debugger (если есть ошибки)
+4. **Debugger** исправляет ошибки, передаёт Reviewer
+5. **Reviewer** проверяет качество:
+   - APPROVED → Оркестратор начинает новый цикл
+   - NEEDS_WORK → возвращает на доработку
 
-## Contributing
+## Файловая структура
 
-Pull requests welcome for importers, normalizers, and exporters.
-
-## License
-
-MIT License — see [LICENSE](LICENSE) file.
-
-## Disclaimer
-
-This project does **not** distribute or host any leaked data. Users are fully responsible for the legality and ethics of the data they process with this tool.
-
-## Autonomous Agentic Development
-
-Для длительной автономной разработки рекомендуется использовать улучшенный **Agentic Loop Template**:
-
-- Расположение: `agentic_loop_template/`
-- Полный архив для старта новых проектов: `agentic_loop_template_v2.zip`
-- Особенности: принудительное использование локального `.venv`, английские инструкции + требование писать коммиты на русском от лица разработчика, хорошая совместимость с неинтерактивными агентами (Blackbox и др.)
-
-**Быстрый старт с Blackbox + MiniMax2.5 в VSCode:**
-
-```powershell
-.\agentic_loop_template\Agent-Init.ps1
+```
+.
+├── orchestrator_prompt.md      # Роль: Оркестратор
+├── coder_prompt.md           # Роль: Кодер
+├── tester_prompt.md          # Роль: Тестировщик
+├── debugger_prompt.md        # Роль: Дебагер
+├── reviewer_prompt.md        # Роль: Ревьюер
+│
+├── handoff_*.json            # Шаблоны передачи между ролями
+│   ├── orchestrator_to_coder.json
+│   ├── coder_to_tester.json
+│   ├── tester_to_debugger.json
+│   ├── debugger_to_reviewer.json
+│   └── reviewer_to_orchestrator.json
+│
+├── agentic_loop_config.yaml # Конфигурация цикла
+├── development_standards.md  # Стандарты разработки
+├── cycle_tracker.json        # Трекер циклов
+├── self_improvement_log.md   # Журнал самоулучшения
+└── README.md               # Документация
 ```
 
-Подробная инструкция — в `agentic_loop_template/Agent-Init.md`.
+## Использование
 
-Для запуска нового цикла или возобновления работы рекомендуется использовать готовые промпты:
-- `orchestrator_start_prompt_cycle6_phase5.md` — для текущего состояния
-- `orchestrator_start_prompt_template.md` — универсальный шаблон для будущих циклов
+### ��ачало нового цикла
 
-**Важно при возобновлении работы:**
-Если работа была прервана и в корне проекта присутствует файл `last_agent_completion.json`, то для продолжения используйте именно `orchestrator_resume_prompt.md`. Этот промпт специально адаптирован под анализ результата предыдущего агента и восстановление контекста.
+1. Orchestrator читает задачу
+2. Создаёт handoff_orchestrator_to_coder.json
+3. Запускает Coder с этим handoff
 
-## Agentless / Direct Development (Solver Loop)
+### Выполнение роли
 
-Для быстрой прямой работы в **Grok CLI**, Blackbox (прямой чат), Cursor и аналогичных инструментах используйте облегчённый **Agentless Loop**:
+1. Прочитай prompt для своей роли
+2. Прочитай соответствующий handoff JSON
+3. Выполни задачу
+4. Создай handoff для следующей роли
 
-- Расположение: `agentless_loop/`
-- Основной документ: `AGENTS.md` (выбор режима + правила)
-- Детальный паттерн: `agentless_loop/SOLVER_LOOP.md` (Inspect → Define success → Smallest vertical slice → Proportional verification → Reflect, максимум 3 tool call за кластер)
-- Правила языка/качества/окружения: `agentic_loop_template/DEVELOPMENT_STANDARDS.md` (общие для обоих режимов)
+### Завершение цикла
 
-**Быстрый старт:**
-```powershell
-. .\scripts\setup.ps1
-```
-Затем читай `AGENTS.md` + `agentless_loop/README.md` и работай по Solver Loop.
+1. Reviewer одобряет (APPROVED)
+2. Запиши урок в self_improvement_log.md
+3. Обнови cycle_tracker.json
+4. Оркестратор начинает новый цикл
 
-**Когда какой режим?**
-- Agentless (по умолчанию для этого CLI и быстрых итераций) — сильная модель, небольшие вертикальные срезы, минимум артефактов.
-- Agentic (полноценный) — сложные фазы, высокие риски, требуется жёсткое разделение ответственности (Orchestrator + ревьюер и т.д.).
+## Конфигурация
 
-Оба режима строго требуют: естественный русский в коммитах и комментариях, работа только внутри `.venv`, никаких упоминаний AI/LLM/агентов в артефактах кода.
+Настройки в `agentic_loop_config.yaml`:
+- Максимальное число циклов
+- Температуры для ролей
+- Quality gates (min coverage, lint checks)
+- Настройки самоулучшения
 
-## Windows helpers
+## Стандарты разработки
 
-Для комфортной работы в классической Windows PowerShell в репозитории есть инструмент:
+Обязательно читать `development_standards.md`:
+- Русский язык для коммитов и комментариев
+- Только .venv
+- UTF-8
+- Без упоминаний AI/LLM
 
-**posh-bash-chaining**
+## Self-Improvement
 
-Позволяет использовать `&&`, `||`, `|&`, `&>` и `>&` точно как в bash.
+После каждого цикла:
+1. Запиши что сработало
+2. Запиши что не сработало
+3. Предложи улучшения
 
-Установка:
+Эти уроки используются для улучшения process в будущих циклах.
 
-```powershell
-cd posh-bash-chaining
-.\Install.ps1
-```
+---
 
-Подробнее — смотри [posh-bash-chaining/README.md](posh-bash-chaining/README.md)
+*Хороший цикл — это не тот, что не совершает ошибок, а тот, который учится на них.*
