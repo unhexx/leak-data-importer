@@ -32,12 +32,12 @@
 
 | #   | Task                                      | Acceptance Criteria                                      | Status |
 |-----|-------------------------------------------|----------------------------------------------------------|--------|
-| 0.1 | Run environment bootstrap                 | `.venv` is healthy, all dependencies installed           | ☐      |
-| 0.2 | Read full current context                 | `TODO.md`, `PROJECT_CONTEXT.md`, and this file reviewed  | ☐      |
-| 0.3 | Validate agentic loop readiness           | All key files from `agentic_loop_template/` are present and understood | ☐      |
-| 0.35 | Initialize agentless_loop (Solver Loop)   | `agentless_loop/README.md` + `SOLVER_LOOP.md` + root `AGENTS.md` created; dual-mode documented in README, PROJECT_CONTEXT, TODO | ☑      |
-| 0.4 | Create initial SPRINTPLAN and PROJECT_CONTEXT | Both files exist with meaningful English content         | ☐      |
-| 0.5 | Set up git identity (if needed)           | `git config user.name` and `user.email` are realistic    | ☐      |
+| 0.1 | Run environment bootstrap                 | `.venv` is healthy, all dependencies installed           | ✅ Done (Agent-Init.ps1 + venv + deps in Cycle 6) |
+| 0.2 | Read full current context                 | `TODO.md`, `PROJECT_CONTEXT.md`, this file + plan.md reviewed | ✅ Done (Cycle 6 Orchestrator) |
+| 0.3 | Validate agentic loop readiness           | All key files from `agentic_loop_template/` present; DEVELOPMENT_STANDARDS + HANDOFF_SCHEMA + roles understood | ✅ Done |
+| 0.4 | Create initial SPRINTPLAN and PROJECT_CONTEXT | Both files exist with meaningful English content         | ✅ (prior cycles) |
+| 0.5 | Set up git identity (if needed)           | `git config user.name` and `user.email` are realistic    | ✅ Done (Евгений Чистяков) |
+| 0.6 | Adopt detailed launch-to-deploy plan      | plan.md (full session plan with Phases 5-8, exit criteria, best practices integration) read and used as north star | ✅ Done (this cycle) |
 
 ---
 
@@ -79,12 +79,14 @@
 
 | #   | Task                                              | Acceptance Criteria                                                                 | Status |
 |-----|---------------------------------------------------|-------------------------------------------------------------------------------------|--------|
-| 5.1 | Complete Neo4j exporter (batch, indexes, constraints) | Full support for all current entities (Person, links, etc.); batch export works; indexes and constraints in place | ☐      |
-| 5.2 | Implement CSV and JSON Lines exporters            | Core exporters in exporters/ module; handle current entity types; tested with sample data | ✅ Done |
-| 5.3 | Significantly enhance Streamlit app               | Improved UX (filters, search); better graph visualization; export buttons integrated; handles real data volumes | ⏳ In Progress |
-| 5.4 | Enhance CLI with export and analyze commands      | New subcommands (export, analyze, link) with good help and examples; integrated with existing importers | 🔄 In Progress |
+| 5.1 | Complete Neo4j exporter (batch, indexes, constraints) | Full support for all current entities (Person, links, etc.); batch export works; indexes and constraints in place | ☐ (code largely present in neo4j_exporter.py; harden + parity in this cycle per plan.md) |
+| 5.2 | Implement CSV and JSON Lines exporters            | Core exporters in exporters/ module; handle current entity types (graph + flat); tested with synthetic data + redaction; PII-safe | ☐ (primary first task for Coder this cycle) |
+| 5.3 | Significantly enhance Streamlit app               | Improved UX (filters, search); better graph visualization; export buttons integrated; handles real data volumes | ☐      |
+| 5.4 | Enhance CLI with export and analyze commands      | New subcommands (export, analyze, link) with good help and examples; integrated with existing importers | ☐      |
 | 5.5 | Add basic GitHub Actions CI                       | .github/workflows/ with lint, test, and typecheck jobs on push/PR; passes cleanly | ☐      |
 | 5.6 | Improve project documentation                     | Expanded README with real examples; added security guidelines and API notes; USAGE.md updated | ☐      |
+
+**Cycle 6 Update:** Full path to deployed & launched (exporters → CLI/viz/CI → Docker/compose + idempotency → hardening + synthetic + release) defined in plan.md. All INVEST tasks trace to it. Fixture gap (sample_report.txt deleted) will be closed with synthetic generator in Phase 7 per plan. Hybrid execution preserves strict project agentic rules.
 
 ---
 

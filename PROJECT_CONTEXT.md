@@ -24,10 +24,10 @@
 | Field                  | Value                                      |
 |------------------------|--------------------------------------------|
 | **Cycle Number**       | 6                                          |
-| **Current Phase**      | Phase 5 start: Production Readiness (Exporters, Visualization, CLI, CI/CD) |
-| **Active Role**        | Orchestrator (planning Cycle 6 / Phase 5)  |
-| **Overall Status**    | Phase 4 COMPLETE; Phase 5 planning initiated |
-| **Last Updated**      | 2026-05-30                                 |
+| **Current Phase**      | Phase 5 start: Production Readiness (Exporters, Visualization, CLI, CI/CD) — detailed launch plan adopted |
+| **Active Role**        | Orchestrator (Cycle 6 kickoff / Phase 5)   |
+| **Overall Status**    | Phase 4 COMPLETE (Cycle 5); Cycle 6 Orchestrator bootstrap + plan.md adoption complete; first handoff prepared |
+| **Last Updated**      | 2026-06 (Cycle 6 Orchestrator after Agent-Init + pull + context sync) |
 
 ### What Already Exists (High-Level)
 
@@ -71,16 +71,18 @@
 
 ---
 
-## Known Limitations and Risks (updated after Phase 4)
+## Known Limitations and Risks (updated Cycle 6 after Agent-Init bootstrap + code review + plan adoption)
 
-- Neo4j exporter still incomplete (no full batching, indexes, or constraints for all entities) — primary focus for Phase 5.
-- Additional exporters (CSV, JSON Lines, Parquet) missing.
-- Streamlit app remains basic (needs major UX and visualization improvements). A detailed implementation plan for evolving it into a Production-Grade Investigation Interface (Idea #2) was created in the May 2026 strategy review — see research plan Section 9 for full INVEST breakdown.
-- CLI is minimal (lacks export/analyze/link commands).
-- No CI/CD pipeline yet (GitHub Actions needed).
-- Documentation is medium (needs expansion: API docs, security guidelines, real examples).
-- Full PII protection in persistent storage (hashing/tokenization in DB and graph) still partial.
-- Windows-centric tooling — cross-platform / Docker support weak.
+- Neo4j exporter largely functional (batch UNWIND + simple constraints in neo4j_exporter.py + export_person_links; see prior handoff); needs full parity audit vs DB models + error handling + masking options.
+- Additional exporters (CSV, JSON Lines, Parquet) **absent** — highest priority per plan.md Phase 5.2.
+- Streamlit usable (import dashboard, entity detail, search, pyvis) but limited (hardcoded, capped lists, in-mem, incomplete export wiring).
+- CLI import functional for txt_report; export/analyze/link stubs only.
+- No .github/workflows, no Dockerfile/docker-compose.
+- Docs: solid high-level + agentic instructions; missing rich runnable examples (synthetic), SECURITY runbook, USAGE with workflows.
+- PII storage protection (hash/tokenize) partial (redaction + PiiSafeLogger strong in code paths).
+- Windows-first (Agent-Init + posh-bash excellent); fixture sample_report.txt deleted in history (synthetic fixtures + generator planned Phase 7).
+- Branch was behind origin (3 doc commits) — ff pull done in kickoff; tracked delete of fixture remains.
+- Detailed to-launch plan (Phases 5 complete + 6 deploy foundation + 7 hardening + 8 docs/release/launch, exit criteria, best practices from ETL/PII/Neo4j/ER research) now lives in session plan.md. Execution strictly via project 5-role agentic loop (Russian human-dev commits/comments, last_agent_completion, UTF-8, venv). Grok tools (search_replace, terminal scripts, tdd/review skills, subagents) used only to accelerate within the loop discipline.
 
 ---
 
